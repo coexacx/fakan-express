@@ -2,14 +2,17 @@
 
 <% const o = data.order; %>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="admin-page-header">
   <div>
+    <h1 class="h5 admin-title">订单详情</h1>
     <h1 class="h5 m-0 admin-title">订单详情</h1>
     <div class="admin-subtitle">订单号：<code><%= o.order_no %></code></div>
   </div>
   <a class="btn btn-sm btn-outline-secondary" href="/admin/orders">返回订单列表</a>
 </div>
 
+<div class="admin-section mb-3">
+  <div class="row g-2 small">
 <div class="card mb-3 admin-card">
   <div class="card-body">
     <div class="row g-2 small">
@@ -29,8 +32,22 @@
           /order/<%= o.order_no %>/<%= o.access_token %>
         </a>
       </div>
-    </div>
+  </div>
 
+  <div class="d-flex gap-2 mt-3 admin-actions">
+    <form method="post" action="/admin/orders/<%= o.order_no %>/mark-paid" onsubmit="return confirm('确认将该订单标记为已支付并发货？')">
+      <button class="btn btn-sm btn-success" type="submit">标记已支付并发货</button>
+    </form>
+    <form method="post" action="/admin/orders/<%= o.order_no %>/cancel" onsubmit="return confirm('确认取消订单并释放预留库存？')">
+      <button class="btn btn-sm btn-outline-danger" type="submit">取消订单</button>
+    </form>
+  </div>
+</div>
+
+<div class="admin-section mb-3">
+  <h2 class="h6 mb-3">商品明细</h2>
+  <div class="table-responsive">
+    <table class="table table-sm admin-table mb-0">
     <div class="d-flex gap-2 mt-3 admin-actions">
       <form method="post" action="/admin/orders/<%= o.order_no %>/mark-paid" onsubmit="return confirm('确认将该订单标记为已支付并发货？')">
         <button class="btn btn-sm btn-success" type="submit">标记已支付并发货</button>
@@ -63,13 +80,15 @@
             </tr>
           <% }) %>
         </tbody>
-      </table>
-    </div>
+    </table>
   </div>
 </div>
 
 <div class="row g-3">
   <div class="col-12 col-lg-6">
+    <div class="admin-section h-100">
+      <h2 class="h6 mb-2">预留卡密</h2>
+      <div class="admin-muted small mb-2">数量：<%= data.reservedKeys.length %></div>
     <div class="card h-100 admin-card">
       <div class="card-body">
         <h2 class="h6">预留卡密</h2>
@@ -83,11 +102,13 @@
         <% } else { %>
           <div class="admin-muted small">无</div>
         <% } %>
-      </div>
     </div>
   </div>
 
   <div class="col-12 col-lg-6">
+    <div class="admin-section h-100">
+      <h2 class="h6 mb-2">已售卡密（发货内容）</h2>
+      <div class="admin-muted small mb-2">数量：<%= data.soldCodes.length %></div>
     <div class="card h-100 admin-card">
       <div class="card-body">
         <h2 class="h6">已售卡密（发货内容）</h2>
@@ -97,7 +118,6 @@
         <% } else { %>
           <div class="admin-muted small">未发货</div>
         <% } %>
-      </div>
     </div>
   </div>
 </div>

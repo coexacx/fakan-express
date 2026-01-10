@@ -4,6 +4,13 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "
 
 /* admin panel refinements */
 .admin-body {
+  background: #f3f4f6;
+  color: #111827;
+  font-family: "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Microsoft Yahei", sans-serif;
+}
+
+.admin-navbar {
+  background: #0f172a;
   background: #f5f6f8;
   color: #1f2937;
 }
@@ -15,6 +22,18 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "
 
 .admin-container {
   max-width: 1100px;
+}
+
+.admin-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-page-header .admin-title {
+  margin: 0;
 }
 
 .admin-title {
@@ -29,6 +48,9 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "
 
 .admin-card {
   border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: none;
+  background: #fff;
   border-radius: 14px;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
 }
@@ -44,6 +66,7 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "
 
 .admin-table {
   background: #fff;
+  border-radius: 10px;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #e5e7eb;
@@ -65,6 +88,7 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "
 }
 
 .admin-actions .btn {
+  border-radius: 8px;
   border-radius: 999px;
   padding: 0.35rem 0.75rem;
 }
@@ -72,12 +96,15 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "
 .admin-form .form-control,
 .admin-form .form-select,
 .admin-form .form-check-input {
+  border-radius: 8px;
   border-radius: 10px;
   border-color: #d1d5db;
 }
 
 .admin-form .form-control:focus,
 .admin-form .form-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 0.15rem rgba(37, 99, 235, 0.15);
   border-color: #6366f1;
   box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15);
 }
@@ -85,6 +112,15 @@ textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "
 .admin-section {
   background: #fff;
   border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.admin-label {
+  color: #4b5563;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   border-radius: 16px;
   padding: 1.5rem;
 }
