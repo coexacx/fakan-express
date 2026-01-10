@@ -1,3 +1,111 @@
 /* minimal tweaks */
 code { font-size: 0.9em; }
 textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+/* admin panel refinements */
+.admin-body {
+  background: #f3f4f6;
+  color: #111827;
+  font-family: "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Microsoft Yahei", sans-serif;
+}
+
+.admin-navbar {
+  background: #0f172a;
+  border-bottom: 1px solid #1f2937;
+}
+
+.admin-container {
+  max-width: 1100px;
+}
+
+.admin-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-page-header .admin-title {
+  margin: 0;
+}
+
+.admin-title {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.admin-subtitle {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.admin-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: none;
+  background: #fff;
+}
+
+.admin-card .card-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.admin-stat {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.admin-table {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.admin-table thead th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.admin-muted {
+  color: #6b7280;
+}
+
+.admin-actions .btn {
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+}
+
+.admin-form .form-control,
+.admin-form .form-select,
+.admin-form .form-check-input {
+  border-radius: 8px;
+  border-color: #d1d5db;
+}
+
+.admin-form .form-control:focus,
+.admin-form .form-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 0.15rem rgba(37, 99, 235, 0.15);
+}
+
+.admin-section {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.admin-label {
+  color: #4b5563;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
