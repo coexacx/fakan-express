@@ -1,12 +1,12 @@
 <%- include('../partials/header', { title, admin, flash }) %>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h5 m-0">商品管理</h1>
+  <h1 class="h5 m-0 admin-title">商品管理</h1>
   <a class="btn btn-sm btn-success" href="/admin/products/new">新增商品</a>
 </div>
 
 <div class="table-responsive">
-  <table class="table table-sm align-middle">
+  <table class="table table-sm align-middle admin-table">
     <thead>
       <tr>
         <th>ID</th>
@@ -19,7 +19,7 @@
     </thead>
     <tbody>
     <% if (!products || products.length === 0) { %>
-      <tr><td colspan="6" class="text-muted">暂无商品</td></tr>
+      <tr><td colspan="6" class="text-muted admin-muted">暂无商品</td></tr>
     <% } %>
 
     <% products.forEach(p => { %>
@@ -41,7 +41,7 @@
           /
           <span class="badge text-bg-success"><%= p.sold_count %></span>
         </td>
-        <td class="text-end">
+        <td class="text-end admin-actions">
           <a class="btn btn-sm btn-outline-primary" href="/admin/products/<%= p.id %>/inventory">库存</a>
           <a class="btn btn-sm btn-outline-secondary" href="/admin/products/<%= p.id %>/edit">编辑</a>
           <form method="post" action="/admin/products/<%= p.id %>/delete" class="d-inline" onsubmit="return confirm('确定删除该商品？（若存在库存或订单引用会删除失败）')">
