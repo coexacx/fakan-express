@@ -1,31 +1,31 @@
 <%- include('../partials/header', { title, admin, flash }) %>
 
-<h1 class="h5 mb-3">后台管理</h1>
+<h1 class="h5 mb-3 admin-title">后台管理</h1>
 
 <div class="row g-3">
   <div class="col-12 col-md-4">
-    <div class="card">
+    <div class="card admin-card">
       <div class="card-body">
         <div class="text-muted small">商品数量</div>
-        <div class="display-6"><%= stats.products %></div>
+        <div class="admin-stat"><%= stats.products %></div>
         <a href="/admin/products" class="btn btn-sm btn-outline-primary mt-2">管理商品</a>
       </div>
     </div>
   </div>
   <div class="col-12 col-md-4">
-    <div class="card">
+    <div class="card admin-card">
       <div class="card-body">
         <div class="text-muted small">可用卡密库存</div>
-        <div class="display-6"><%= stats.availableKeys %></div>
+        <div class="admin-stat"><%= stats.availableKeys %></div>
         <a href="/admin/products" class="btn btn-sm btn-outline-primary mt-2">导入库存</a>
       </div>
     </div>
   </div>
   <div class="col-12 col-md-4">
-    <div class="card">
+    <div class="card admin-card">
       <div class="card-body">
         <div class="text-muted small">待处理订单</div>
-        <div class="display-6"><%= stats.openOrders %></div>
+        <div class="admin-stat"><%= stats.openOrders %></div>
         <a href="/admin/orders" class="btn btn-sm btn-outline-primary mt-2">查看订单</a>
       </div>
     </div>
@@ -33,7 +33,7 @@
 </div>
 
 <hr class="my-4">
-<div class="d-flex gap-2">
+<div class="d-flex gap-2 admin-actions">
   <a class="btn btn-primary" href="/admin/products">商品管理</a>
   <a class="btn btn-primary" href="/admin/orders">订单管理</a>
   <a class="btn btn-outline-secondary" href="/">回到前台</a>
