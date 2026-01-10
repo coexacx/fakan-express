@@ -5,6 +5,7 @@
 <div class="admin-page-header">
   <div>
     <h1 class="h5 admin-title">订单详情</h1>
+    <h1 class="h5 m-0 admin-title">订单详情</h1>
     <div class="admin-subtitle">订单号：<code><%= o.order_no %></code></div>
   </div>
   <a class="btn btn-sm btn-outline-secondary" href="/admin/orders">返回订单列表</a>
@@ -12,6 +13,9 @@
 
 <div class="admin-section mb-3">
   <div class="row g-2 small">
+<div class="card mb-3 admin-card">
+  <div class="card-body">
+    <div class="row g-2 small">
       <div class="col-12 col-md-6"><strong>状态：</strong><%= o.status %></div>
       <div class="col-12 col-md-6"><strong>金额：</strong>￥<%= formatMoney(o.total_cents) %></div>
       <div class="col-12 col-md-6"><strong>联系方式：</strong><%= o.customer_contact %></div>
@@ -44,6 +48,22 @@
   <h2 class="h6 mb-3">商品明细</h2>
   <div class="table-responsive">
     <table class="table table-sm admin-table mb-0">
+    <div class="d-flex gap-2 mt-3 admin-actions">
+      <form method="post" action="/admin/orders/<%= o.order_no %>/mark-paid" onsubmit="return confirm('确认将该订单标记为已支付并发货？')">
+        <button class="btn btn-sm btn-success" type="submit">标记已支付并发货</button>
+      </form>
+      <form method="post" action="/admin/orders/<%= o.order_no %>/cancel" onsubmit="return confirm('确认取消订单并释放预留库存？')">
+        <button class="btn btn-sm btn-outline-danger" type="submit">取消订单</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3 admin-card">
+  <div class="card-body">
+    <h2 class="h6">商品明细</h2>
+    <div class="table-responsive">
+      <table class="table table-sm admin-table">
         <thead>
           <tr>
             <th>商品</th>
@@ -69,6 +89,10 @@
     <div class="admin-section h-100">
       <h2 class="h6 mb-2">预留卡密</h2>
       <div class="admin-muted small mb-2">数量：<%= data.reservedKeys.length %></div>
+    <div class="card h-100 admin-card">
+      <div class="card-body">
+        <h2 class="h6">预留卡密</h2>
+        <div class="admin-muted small mb-2">数量：<%= data.reservedKeys.length %></div>
         <% if (data.reservedKeys.length > 0) { %>
           <ul class="small mb-0">
             <% data.reservedKeys.forEach(k => { %>
@@ -85,6 +109,10 @@
     <div class="admin-section h-100">
       <h2 class="h6 mb-2">已售卡密（发货内容）</h2>
       <div class="admin-muted small mb-2">数量：<%= data.soldCodes.length %></div>
+    <div class="card h-100 admin-card">
+      <div class="card-body">
+        <h2 class="h6">已售卡密（发货内容）</h2>
+        <div class="admin-muted small mb-2">数量：<%= data.soldCodes.length %></div>
         <% if (data.soldCodes.length > 0) { %>
           <textarea class="form-control" rows="10" readonly><%= data.soldCodes.join('\n') %></textarea>
         <% } else { %>

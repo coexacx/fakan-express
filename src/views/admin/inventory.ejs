@@ -3,6 +3,7 @@
 <div class="admin-page-header">
   <div>
     <h1 class="h5 admin-title">库存管理</h1>
+    <h1 class="h5 m-0 admin-title">库存管理</h1>
     <div class="admin-subtitle">商品：<%= product.name %>（ID: <%= product.id %>）</div>
   </div>
   <a class="btn btn-sm btn-outline-secondary" href="/admin/products">返回商品列表</a>
@@ -13,6 +14,7 @@
     <div class="card admin-card">
       <div class="card-body">
         <div class="admin-label">可用</div>
+        <div class="text-muted small">可用</div>
         <div class="admin-stat"><%= stats.available %></div>
       </div>
     </div>
@@ -21,6 +23,7 @@
     <div class="card admin-card">
       <div class="card-body">
         <div class="admin-label">预留</div>
+        <div class="text-muted small">预留</div>
         <div class="admin-stat"><%= stats.reserved %></div>
       </div>
     </div>
@@ -29,6 +32,7 @@
     <div class="card admin-card">
       <div class="card-body">
         <div class="admin-label">已售</div>
+        <div class="text-muted small">已售</div>
         <div class="admin-stat"><%= stats.sold %></div>
       </div>
     </div>
@@ -45,6 +49,18 @@
     </div>
     <button class="btn btn-success" type="submit">导入</button>
   </form>
+<div class="card admin-card">
+  <div class="card-body">
+    <h2 class="h6">导入卡密</h2>
+    <form class="admin-form" method="post" action="/admin/products/<%= product.id %>/inventory/import">
+      <div class="mb-3">
+        <label class="form-label">卡密列表（每行一条）</label>
+        <textarea class="form-control" name="codes" rows="10" placeholder="AAAA-BBBB-CCCC\nDDDD-EEEE-FFFF"></textarea>
+        <div class="form-text admin-muted">系统会自动去重（按同一商品的卡密内容）。</div>
+      </div>
+      <button class="btn btn-success" type="submit">导入</button>
+    </form>
+  </div>
 </div>
 
 <%- include('../partials/footer') %>

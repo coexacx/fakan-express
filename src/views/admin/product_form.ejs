@@ -8,6 +8,11 @@
 
 <div class="admin-section">
   <form class="admin-form" method="post" action="<%= isEdit ? ('/admin/products/' + product.id + '/edit') : '/admin/products/new' %>">
+<h1 class="h5 mb-3 admin-title"><%= isEdit ? '编辑商品' : '新增商品' %></h1>
+
+<div class="card admin-card">
+  <div class="card-body">
+    <form class="admin-form" method="post" action="<%= isEdit ? ('/admin/products/' + product.id + '/edit') : '/admin/products/new' %>">
       <div class="mb-3">
         <label class="form-label">商品名称</label>
         <input class="form-control" name="name" required maxlength="200" value="<%= isEdit ? product.name : '' %>">
@@ -33,6 +38,12 @@
       <a class="btn btn-outline-secondary" href="/admin/products">返回</a>
     </div>
   </form>
+      <div class="d-flex gap-2 admin-actions">
+        <button class="btn btn-primary" type="submit">保存</button>
+        <a class="btn btn-outline-secondary" href="/admin/products">返回</a>
+      </div>
+    </form>
+  </div>
 </div>
 
 <%- include('../partials/footer') %>
