@@ -1,0 +1,105 @@
+<%- include('../partials/header', { title, admin, flash }) %>
+
+<% const o = data.order; %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h5 m-0">订单详情</h1>
+    <div class="text-muted small">订单号：<code><%= o.order_no %></code></div>
+  </div>
+  <a class="btn btn-sm btn-outline-secondary" href="/admin/orders">返回订单列表</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 small">
+      <div class="col-12 col-md-6"><strong>状态：</strong><%= o.status %></div>
+      <div class="col-12 col-md-6"><strong>金额：</strong>￥<%= formatMoney(o.total_cents) %></div>
+      <div class="col-12 col-md-6"><strong>联系方式：</strong><%= o.customer_contact %></div>
+      <div class="col-12 col-md-6"><strong>下单：</strong><%= new Date(o.created_at).toLocaleString() %></div>
+      <% if (o.paid_at) { %>
+        <div class="col-12 col-md-6"><strong>支付时间：</strong><%= new Date(o.paid_at).toLocaleString() %></div>
+      <% } %>
+      <% if (o.delivered_at) { %>
+        <div class="col-12 col-md-6"><strong>发货时间：</strong><%= new Date(o.delivered_at).toLocaleString() %></div>
+      <% } %>
+      <div class="col-12">
+        <strong>前台访问链接：</strong>
+        <a href="/order/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>" target="_blank">
+          /order/<%= o.order_no %>/<%= o.access_token %>
+        </a>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+      <form method="post" action="/admin/orders/<%= o.order_no %>/mark-paid" onsubmit="return confirm('确认将该订单标记为已支付并发货？')">
+        <button class="btn btn-sm btn-success" type="submit">标记已支付并发货</button>
+      </form>
+      <form method="post" action="/admin/orders/<%= o.order_no %>/cancel" onsubmit="return confirm('确认取消订单并释放预留库存？')">
+        <button class="btn btn-sm btn-outline-danger" type="submit">取消订单</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <h2 class="h6">商品明细</h2>
+    <div class="table-responsive">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>商品</th>
+            <th>数量</th>
+            <th>单价</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% data.items.forEach(it => { %>
+            <tr>
+              <td><%= it.product_name %></td>
+              <td><%= it.qty %></td>
+              <td>￥<%= formatMoney(it.unit_price_cents) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h6">预留卡密</h2>
+        <div class="text-muted small mb-2">数量：<%= data.reservedKeys.length %></div>
+        <% if (data.reservedKeys.length > 0) { %>
+          <ul class="small mb-0">
+            <% data.reservedKeys.forEach(k => { %>
+              <li>ID: <%= k.id %>（到期：<%= k.reserved_until ? new Date(k.reserved_until).toLocaleString() : '-' %>）</li>
+            <% }) %>
+          </ul>
+        <% } else { %>
+          <div class="text-muted small">无</div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h6">已售卡密（发货内容）</h2>
+        <div class="text-muted small mb-2">数量：<%= data.soldCodes.length %></div>
+        <% if (data.soldCodes.length > 0) { %>
+          <textarea class="form-control" rows="10" readonly><%= data.soldCodes.join('\n') %></textarea>
+        <% } else { %>
+          <div class="text-muted small">未发货</div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

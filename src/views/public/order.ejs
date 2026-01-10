@@ -1,0 +1,114 @@
+<%- include('../partials/public_header', { title, admin, flash }) %>
+
+<% 
+  const o = data.order; 
+  const items = data.items || []; 
+  function statusText(s){
+    if (s === 'pending') return '待支付';
+    if (s === 'paid') return '已支付';
+    if (s === 'delivered') return '已发货';
+    if (s === 'delivery_failed') return '发货失败';
+    if (s === 'expired') return '已过期';
+    if (s === 'canceled') return '已取消';
+    return s;
+  }
+  function statusPill(s){
+    if (s === 'delivered') return 'ok';
+    if (s === 'pending') return 'warn';
+    if (s === 'delivery_failed') return 'danger';
+    if (s === 'expired' || s === 'canceled') return 'info';
+    return 'info';
+  }
+%>
+
+<section class="card">
+  <div class="card-top">
+    <div class="card-title">订单详情</div>
+    <span class="pill <%= statusPill(o.status) %>"><%= statusText(o.status) %></span>
+  </div>
+
+  <div class="desc" style="margin-top:10px;">
+    订单号：<strong><%= o.order_no %></strong> · 下单时间：<%= new Date(o.created_at).toLocaleString() %>
+  </div>
+
+  <div class="desc" style="margin-top:6px;">
+    联系方式：<%= o.customer_contact %> · 金额：<strong>￥<%= formatMoney(o.total_cents) %></strong>
+  </div>
+
+  <% if (o.status === 'pending' && o.reserved_expires_at) { %>
+    <div class="desc" style="margin-top:6px;">
+      预留到期：<%= new Date(o.reserved_expires_at).toLocaleString() %>
+    </div>
+  <% } %>
+</section>
+
+<section class="card" style="margin-top:16px;">
+  <div class="card-title">商品明细</div>
+  <table class="table">
+    <thead>
+      <tr><th>商品</th><th>数量</th><th>单价</th></tr>
+    </thead>
+    <tbody>
+      <% items.forEach(it => { %>
+        <tr>
+          <td><%= it.product_name %></td>
+          <td><%= it.qty %></td>
+          <td>￥<%= formatMoney(it.unit_price_cents) %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>
+
+<% if (o.status === 'pending') { %>
+  <div class="alert alert-info" style="margin-top:16px;">
+    订单已创建，等待支付。点击按钮进入支付页（当前项目默认演示支付，可后续替换为真实支付）。
+  </div>
+  <div class="btnrow">
+    <a class="btn primary" href="/pay/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>">去支付</a>
+  </div>
+<% } else if (o.status === 'delivery_failed') { %>
+  <div class="alert alert-danger" style="margin-top:16px;">已支付但库存不足导致发货失败，请联系商家处理。</div>
+<% } else if (o.status === 'expired') { %>
+  <div class="alert alert-secondary" style="margin-top:16px;">订单超时未支付已失效，请重新下单。</div>
+<% } else if (o.status === 'delivered') { %>
+  <section class="card" style="margin-top:16px;">
+    <div class="card-top">
+      <div class="card-title">卡密内容（已发货）</div>
+      <button class="btn" type="button" id="copyBtn">复制全部</button>
+    </div>
+
+    <% if (!data.deliveredCodes || data.deliveredCodes.length === 0) { %>
+      <div class="alert alert-warning" style="margin-top:12px;">未查询到卡密（异常），请联系商家。</div>
+    <% } else { %>
+      <textarea class="codebox" id="codes" readonly><%= data.deliveredCodes.join('\n') %></textarea>
+      <div class="help" style="margin-top:10px;">请妥善保存卡密，建议复制后立即使用。</div>
+    <% } %>
+  </section>
+
+  <script>
+    (function(){
+      const btn = document.getElementById('copyBtn');
+      const el = document.getElementById('codes');
+      if (!btn || !el) return;
+      btn.addEventListener('click', async () => {
+        try{
+          await navigator.clipboard.writeText(el.value || el.textContent || '');
+          btn.textContent = '已复制';
+          setTimeout(()=>btn.textContent='复制全部', 1200);
+        }catch(e){
+          btn.textContent = '复制失败';
+          setTimeout(()=>btn.textContent='复制全部', 1200);
+        }
+      });
+    })();
+  </script>
+<% } else { %>
+  <div class="alert alert-secondary" style="margin-top:16px;">当前状态：<%= statusText(o.status) %></div>
+<% } %>
+
+<div class="muted" style="margin-top:16px;">
+  提示：此订单链接包含访问凭证（token），请勿泄露给他人。
+</div>
+
+<%- include('../partials/public_footer') %>

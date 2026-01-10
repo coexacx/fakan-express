@@ -1,0 +1,43 @@
+<%- include('../partials/public_header', { title, admin, flash }) %>
+
+<div class="layout">
+  <section class="card">
+    <div class="card-top">
+      <h1 class="card-title" style="margin:0;font-size:20px;"><%= product.name %></h1>
+      <span class="pill info">可用库存 <%= product.available_count %></span>
+    </div>
+    <div class="price">￥<%= formatMoney(product.price_cents) %></div>
+    <div class="prose" style="margin-top:12px;"><%= product.description || '暂无介绍' %></div>
+  </section>
+
+  <aside class="card">
+    <h2 class="h2">填写下单信息</h2>
+    <form method="post" action="/order">
+      <input type="hidden" name="product_id" value="<%= product.id %>">
+
+      <div class="field">
+        <div class="label">联系方式（必填）</div>
+        <input class="input" name="customer_contact" placeholder="QQ / 微信 / 手机 / 邮箱" required maxlength="200">
+        <div class="help">用于售后联系，不需要注册登录。</div>
+      </div>
+
+      <div class="field">
+        <div class="label">购买数量</div>
+        <input class="input" type="number" name="qty" value="1" min="1" max="100" required>
+      </div>
+
+      <div class="field">
+        <div class="label">备注（可选）</div>
+        <textarea class="textarea" name="customer_note" rows="3" maxlength="500" placeholder="例如：需要几个/有无特殊要求"></textarea>
+      </div>
+
+      <div class="btnrow">
+        <button class="btn success block" type="submit">提交订单</button>
+      </div>
+
+      <div class="help" style="margin-top:10px;">下单后系统会预留库存一段时间，请尽快完成支付。</div>
+    </form>
+  </aside>
+</div>
+
+<%- include('../partials/public_footer') %>

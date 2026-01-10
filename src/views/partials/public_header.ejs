@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= title ? title + ' - ' : '' %>发卡站</title>
+  <link href="/static/public.css" rel="stylesheet">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="/">发卡站</a>
+    <div class="topbar-right">
+      <!-- 顾客端不显示任何后台/商家登录入口 -->
+      <div class="topbar-right">
+  <a class="btn" href="/query">订单查询</a>
+</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <% if (flash) { %>
+    <div class="alert alert-<%= flash.type || 'info' %>"><%= flash.message %></div>
+  <% } %>

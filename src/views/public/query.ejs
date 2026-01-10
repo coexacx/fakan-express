@@ -1,0 +1,111 @@
+<%- include('../partials/public_header', { title, admin, flash }) %>
+
+<section class="card">
+  <div class="card-top">
+    <div class="card-title">订单查询</div>
+    <span class="pill info">订单号 / 联系方式</span>
+  </div>
+
+  <div class="desc" style="margin-top:10px;">
+    输入 <strong>订单号</strong> 或 <strong>下单联系方式</strong>（任意一个即可）进行查询。
+  </div>
+
+  <form method="post" action="/query" style="margin-top:14px;">
+    <div class="field">
+      <div class="label">订单号（可选）</div>
+      <input class="input" name="order_no" value="<%= (q && q.order_no) ? q.order_no : '' %>" placeholder="例如：202601081732159238" maxlength="32">
+    </div>
+
+    <div class="field">
+      <div class="label">下单联系方式（可选）</div>
+      <input class="input" name="customer_contact" value="<%= (q && q.customer_contact) ? q.customer_contact : '' %>" placeholder="QQ / 微信 / 手机 / 邮箱" maxlength="200">
+      <div class="help">建议输入下单时填写的完整联系方式（更准确）。</div>
+    </div>
+
+    <div class="btnrow">
+      <button class="btn primary" type="submit">查询</button>
+      <a class="btn" href="/">返回商品列表</a>
+    </div>
+  </form>
+</section>
+
+<% if (results) { %>
+  <% if (results.length === 0) { %>
+    <div class="alert alert-warning" style="margin-top:16px;">未查询到订单，请检查输入是否正确。</div>
+  <% } else { %>
+    <% results.forEach(r => { 
+      const o = r.order;
+      const items = r.items || [];
+      const codes = r.deliveredCodes || [];
+      function statusText(s){
+        if (s === 'pending') return '待支付';
+        if (s === 'paid') return '已支付';
+        if (s === 'delivered') return '已发货';
+        if (s === 'delivery_failed') return '发货失败';
+        if (s === 'expired') return '已过期';
+        if (s === 'canceled') return '已取消';
+        return s;
+      }
+      function statusPill(s){
+        if (s === 'delivered') return 'ok';
+        if (s === 'pending') return 'warn';
+        if (s === 'delivery_failed') return 'danger';
+        return 'info';
+      }
+    %>
+
+    <section class="card" style="margin-top:16px;">
+      <div class="card-top">
+        <div class="card-title">订单：<%= o.order_no %></div>
+        <span class="pill <%= statusPill(o.status) %>"><%= statusText(o.status) %></span>
+      </div>
+
+      <div class="desc" style="margin-top:8px;">
+        下单时间：<%= new Date(o.created_at).toLocaleString() %> · 金额：<strong>￥<%= formatMoney(o.total_cents) %></strong>
+      </div>
+
+      <table class="table">
+        <thead><tr><th>商品</th><th>数量</th><th>单价</th></tr></thead>
+        <tbody>
+          <% items.forEach(it => { %>
+            <tr>
+              <td><%= it.product_name %></td>
+              <td><%= it.qty %></td>
+              <td>￥<%= formatMoney(it.unit_price_cents) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <div class="btnrow">
+        <a class="btn" href="/order/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>">打开订单详情</a>
+        <% if (o.status === 'pending') { %>
+          <a class="btn success" href="/pay/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>">去支付</a>
+        <% } %>
+      </div>
+
+      <% if (o.status === 'delivered') { %>
+        <div style="margin-top:14px;">
+          <div class="card-top">
+            <div class="card-title">卡密内容</div>
+            <button class="btn" type="button" onclick="copyText('<%= o.order_no %>')">复制全部</button>
+          </div>
+          <textarea class="codebox" id="codes-<%= o.order_no %>" readonly><%= codes.join('\n') %></textarea>
+          <div class="help" style="margin-top:10px;">请妥善保存卡密，勿外泄。</div>
+        </div>
+      <% } %>
+    </section>
+
+    <% }) %>
+
+    <script>
+      function copyText(orderNo){
+        const el = document.getElementById('codes-' + orderNo);
+        if (!el) return;
+        navigator.clipboard.writeText(el.value || '').then(()=>{},()=>{});
+      }
+    </script>
+  <% } %>
+<% } %>
+
+<%- include('../partials/public_footer') %>

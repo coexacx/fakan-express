@@ -1,0 +1,27 @@
+<%- include('../partials/public_header', { title, admin, flash }) %>
+<% const o = data.order; %>
+
+<section class="card">
+  <div class="card-top">
+    <div class="card-title">支付</div>
+    <span class="pill warn">演示模式</span>
+  </div>
+
+  <div class="desc" style="margin-top:10px;">
+    订单号：<strong><%= o.order_no %></strong> · 金额：<strong>￥<%= formatMoney(o.total_cents) %></strong>
+  </div>
+
+  <div class="alert alert-warning" style="margin-top:14px;">
+    当前为<strong>演示支付</strong>：点击“我已完成支付”会直接把订单标记为已支付并自动发货。<br>
+    上线请接入真实支付（支付宝/微信/等）并用回调触发服务器 webhook。
+  </div>
+
+  <form method="post" action="/pay/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>/confirm">
+    <div class="btnrow">
+      <button class="btn success" type="submit">我已完成支付（演示）</button>
+      <a class="btn" href="/order/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>">返回订单</a>
+    </div>
+  </form>
+</section>
+
+<%- include('../partials/public_footer') %>
