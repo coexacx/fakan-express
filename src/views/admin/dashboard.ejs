@@ -35,6 +35,21 @@
           <a href="/admin/orders" class="btn">查看订单</a>
         </div>
       </div>
+      <div class="card">
+        <div class="card-title">交易金额</div>
+        <div class="muted">近 24 小时成交金额</div>
+        <div class="price">￥<%= formatMoney(stats.todayRevenue) %></div>
+      </div>
+      <div class="card">
+        <div class="card-title">总交易金额</div>
+        <div class="muted">开业至今累计成交</div>
+        <div class="price">￥<%= formatMoney(stats.totalRevenue) %></div>
+      </div>
+      <div class="card">
+        <div class="card-title">总订单量</div>
+        <div class="muted">开业至今成交订单</div>
+        <div class="price"><%= stats.totalOrders %></div>
+      </div>
     </div>
   </div>
 </div>

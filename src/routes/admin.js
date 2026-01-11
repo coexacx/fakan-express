@@ -109,10 +109,26 @@ router.post('/security', requireAdmin, async (req, res) => {
 
 // ---- Dashboard ----
 router.get('/', requireAdmin, async (req, res) => {
-  const [{ rows: prodRows }, { rows: keyRows }, { rows: pendingRows }] = await Promise.all([
+  const [
+    { rows: prodRows },
+    { rows: keyRows },
+    { rows: pendingRows },
+    { rows: todayRows },
+    { rows: totalRows },
+    { rows: orderRows },
+  ] = await Promise.all([
     pool.query('SELECT COUNT(*)::int AS c FROM products'),
     pool.query("SELECT COUNT(*)::int AS c FROM card_keys WHERE status='available'"),
     pool.query("SELECT COUNT(*)::int AS c FROM orders WHERE status IN ('pending','paid','delivery_failed')"),
+    pool.query(
+      "SELECT COALESCE(SUM(total_cents), 0)::bigint AS total FROM orders WHERE status IN ('paid','delivered') AND created_at >= NOW() - INTERVAL '24 hours'"
+    ),
+    pool.query(
+      "SELECT COALESCE(SUM(total_cents), 0)::bigint AS total FROM orders WHERE status IN ('paid','delivered')"
+    ),
+    pool.query(
+      "SELECT COUNT(*)::int AS c FROM orders WHERE status IN ('paid','delivered')"
+    ),
   ]);
 
   res.render('admin/dashboard', {
@@ -121,7 +137,11 @@ router.get('/', requireAdmin, async (req, res) => {
       products: prodRows[0].c,
       availableKeys: keyRows[0].c,
       openOrders: pendingRows[0].c,
+      todayRevenue: Number(todayRows[0].total),
+      totalRevenue: Number(totalRows[0].total),
+      totalOrders: orderRows[0].c,
     },
+    formatMoney,
   });
 });
 
