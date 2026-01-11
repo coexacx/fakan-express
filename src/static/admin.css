@@ -29,6 +29,9 @@ body{
   color:#0f172a;
   border-color:#e5e7eb;
 }
+.topbar.admin .topbar-right .btn{
+  color:#0f172a;
+}
 
 .admin-page-header{
   display:flex;
