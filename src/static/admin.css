@@ -13,8 +13,11 @@ body{
 .topbar.admin .topbar-right button{
   color:#fff;
 }
-.topbar.admin .btn{
-  border-color:rgba(255,255,255,.2);
+.topbar.admin .btn,
+.admin-navbar .btn{
+  background:#fff;
+  color:#0f172a;
+  border-color:#e5e7eb;
 }
 
 .admin-page-header{
