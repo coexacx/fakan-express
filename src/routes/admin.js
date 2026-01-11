@@ -262,6 +262,8 @@ router.post('/products/new', requireAdmin, upload.single('image'), async (req, r
       const fallbackUrl = String(req.body.image_url || '').trim();
       image_url = fallbackUrl || null;
     }
+    const image_url = req.file ? `/static/uploads/${req.file.filename}` : null;
+    const image_url = String(req.body.image_url || '').trim();
     const priceYuan = Number(req.body.price_yuan || 0);
     const is_active = req.body.is_active === 'on';
 
@@ -298,6 +300,8 @@ router.post('/products/:id/edit', requireAdmin, upload.single('image'), async (r
     if (req.file) {
       image_url = `/static/uploads/${req.file.filename}`;
     }
+    const image_url = req.file ? `/static/uploads/${req.file.filename}` : existing.image_url;
+    const image_url = String(req.body.image_url || '').trim();
     const priceYuan = Number(req.body.price_yuan || 0);
     const is_active = req.body.is_active === 'on';
 

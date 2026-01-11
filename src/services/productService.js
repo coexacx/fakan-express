@@ -185,6 +185,7 @@ async function adminListCardKeys({ productId, status }) {
         return '[无法解密]';
       }
     })(),
+    code_plain: decryptText(row.code_encrypted),
   }));
 }
 
@@ -208,6 +209,7 @@ async function adminGetCardKey(cardKeyId) {
         return '[无法解密]';
       }
     })(),
+    code_plain: decryptText(row.code_encrypted),
   };
 }
 

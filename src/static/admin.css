@@ -106,6 +106,10 @@ body{
   border-radius:999px;
   background:#fff;
   flex-wrap:nowrap;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#fff;
 }
 .card-key-meta{
   display:flex;
@@ -134,6 +138,15 @@ body{
   color:var(--muted);
   background:#e2e8f0;
   border-color:#cbd5e1;
+  flex-shrink:0;
+}
+.card-key-text{
+  font-weight:700;
+  word-break:break-all;
+}
+.card-key-sold{
+  color:var(--muted);
+  background:#f1f5f9;
 }
 .card-key-sold-time{
   font-size:12px;
