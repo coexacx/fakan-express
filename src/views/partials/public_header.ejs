@@ -1,14 +1,34 @@
+<%
+  const siteTitle = siteSettings && siteSettings.site_title ? siteSettings.site_title : '发卡站';
+  const topBg = siteSettings && siteSettings.top_bg_color ? siteSettings.top_bg_color : '#f6f7fb';
+  const middleBg = siteSettings && siteSettings.middle_bg_color ? siteSettings.middle_bg_color : '#f6f7fb';
+  const cardBg = siteSettings && siteSettings.card_bg_color ? siteSettings.card_bg_color : '#ffffff';
+  const footerBg = siteSettings && siteSettings.footer_bg_color ? siteSettings.footer_bg_color : '#f6f7fb';
+  const middleBgImage = siteSettings && siteSettings.middle_bg_image_url ? siteSettings.middle_bg_image_url : '';
+  const middleTransparent = middleBg && middleBg.toLowerCase() === '#000000';
+%>
 <!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= title ? title + ' - ' : '' %><%= siteTitle %></title>
   <title><%= title ? title + ' - ' : '' %><%= siteSettings && siteSettings.site_title ? siteSettings.site_title : '发卡站' %></title>
   <link href="/static/public.css" rel="stylesheet">
+  <style>
+    :root{
+      --topbar-bg:<%= topBg %>;
+      --page-bg:<%= middleTransparent ? 'transparent' : middleBg %>;
+      --card-bg:<%= cardBg %>;
+      --footer-bg:<%= footerBg %>;
+      --page-bg-image:<%= middleTransparent && middleBgImage ? `url('${middleBgImage}')` : 'none' %>;
+    }
+  </style>
 </head>
 <body>
 <header class="topbar">
   <div class="wrap topbar-inner">
+    <a class="brand" href="/"><%= siteTitle %></a>
     <a class="brand" href="/"><%= siteSettings && siteSettings.site_title ? siteSettings.site_title : '发卡站' %></a>
     <div class="topbar-right">
       <!-- 顾客端不显示任何后台/商家登录入口 -->

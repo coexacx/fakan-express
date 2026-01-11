@@ -11,6 +11,7 @@
       <a class="btn small" href="/admin">返回后台</a>
     </div>
 
+    <form class="card admin-section" method="post" action="/admin/site-settings" enctype="multipart/form-data">
     <form class="card admin-section" method="post" action="/admin/site-settings">
       <div class="field">
         <label class="label">站点标题</label>
@@ -34,6 +35,39 @@
         <label class="label">公告内容</label>
         <textarea class="input" name="announcement" rows="3" placeholder="填写公告内容（可留空）"><%= settings.announcement %></textarea>
         <div class="muted">展示在商品列表页的公告板区域。</div>
+      </div>
+
+      <div class="field">
+        <label class="label">顶部背景色</label>
+        <input class="input" name="top_bg_color" value="<%= settings.top_bg_color %>" placeholder="#f6f7fb">
+        <div class="muted">请输入 #RRGGBB 颜色代码。</div>
+      </div>
+
+      <div class="field">
+        <label class="label">中部背景色</label>
+        <input class="input" name="middle_bg_color" value="<%= settings.middle_bg_color %>" placeholder="#f6f7fb">
+        <div class="muted">输入 #000000 表示透明，此时可使用下方背景图。</div>
+      </div>
+
+      <div class="field">
+        <label class="label">商品模块背景色</label>
+        <input class="input" name="card_bg_color" value="<%= settings.card_bg_color %>" placeholder="#ffffff">
+        <div class="muted">设置商品卡片的背景色。</div>
+      </div>
+
+      <div class="field">
+        <label class="label">底部背景色</label>
+        <input class="input" name="footer_bg_color" value="<%= settings.footer_bg_color %>" placeholder="#f6f7fb">
+        <div class="muted">设置页脚背景色。</div>
+      </div>
+
+      <div class="field">
+        <label class="label">中部背景图</label>
+        <input class="input" type="file" name="middle_bg_image" accept="image/*">
+        <% if (settings.middle_bg_image_url) { %>
+          <div class="muted">当前背景图：<a href="<%= settings.middle_bg_image_url %>" target="_blank">查看</a></div>
+        <% } %>
+        <div class="muted">仅当中部背景色为 #000000 时显示背景图。</div>
       </div>
 
       <div class="btnrow">
