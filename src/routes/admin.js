@@ -273,6 +273,7 @@ router.post('/products/new', requireAdmin, upload.single('image'), async (req, r
 
     req.session.flash = { type: 'success', message: '商品已创建' };
     return res.redirect(`/admin/products/${product.id}/edit`);
+    return res.redirect(`/admin/products/${productId}/edit`);
   } catch (e) {
     req.session.flash = { type: 'danger', message: e.message || '创建失败' };
     return res.redirect('/admin/products/new');
