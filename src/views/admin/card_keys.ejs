@@ -52,19 +52,12 @@
         <div class="card-key-row <%= k.status === 'sold' ? 'card-key-sold' : '' %>">
           <div class="card-key-meta">
             <div class="card-key-text"><%= k.code_plain %></div>
-          </div>
-          <div class="card-key-actions">
-            <% if (k.status !== 'sold') { %>
-            <div class="muted">ID: <%= k.id %></div>
-          </div>
-          <div class="card-key-actions">
-            <% if (k.status !== 'sold') { %>
             <% if (k.status === 'sold') { %>
-              <div class="muted">已售出时间：<%= k.sold_at ? new Date(k.sold_at).toLocaleString() : '-' %></div>
+              <div class="muted card-key-sold-time">售出时间：<%= k.sold_at ? new Date(k.sold_at).toLocaleString() : '-' %></div>
             <% } %>
           </div>
-          <% if (k.status !== 'sold') { %>
-            <div class="btnrow">
+          <div class="card-key-actions">
+            <% if (k.status !== 'sold') { %>
               <a class="btn small" href="/admin/card-keys/<%= k.id %>/edit">编辑</a>
               <form method="post" action="/admin/card-keys/<%= k.id %>/delete" class="inline-form" onsubmit="return confirm('确定删除该卡密？')">
                 <input type="hidden" name="product_id" value="<%= selectedProductId %>">
@@ -72,16 +65,8 @@
               </form>
             <% } else { %>
               <span class="pill">已售出</span>
-              <span class="muted card-key-sold-time">售出时间：<%= k.sold_at ? new Date(k.sold_at).toLocaleString() : '-' %></span>
             <% } %>
           </div>
-              <span class="muted">售出时间：<%= k.sold_at ? new Date(k.sold_at).toLocaleString() : '-' %></span>
-            <% } %>
-          </div>
-            </div>
-          <% } else { %>
-            <div class="muted">已售出</div>
-          <% } %>
         </div>
       <% }) %>
     </div>
