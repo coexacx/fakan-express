@@ -104,6 +104,9 @@ body{
   padding:10px 16px;
   border:1px solid var(--border);
   border-radius:999px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:12px;
   background:#fff;
 }
 .card-key-meta{
@@ -121,6 +124,7 @@ body{
   justify-content:flex-end;
   flex-shrink:0;
   text-align:right;
+  flex-shrink:0;
 }
 .card-key-text{
   font-weight:700;
