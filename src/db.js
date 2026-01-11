@@ -17,6 +17,10 @@ async function ping() {
   await pool.query('SELECT 1 AS ok');
 }
 
+async function ensureSchema() {
+  await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT');
+}
+
 async function withClient(fn) {
   const client = await pool.connect();
   try {
@@ -44,4 +48,4 @@ async function tx(fn) {
   });
 }
 
-module.exports = { pool, ping, withClient, tx };
+module.exports = { pool, ping, ensureSchema, withClient, tx };
