@@ -19,25 +19,25 @@
           <input class="input" name="name" required maxlength="200" value="<%= isEdit ? product.name : '' %>">
         </div>
 
-    <div class="field">
-      <label class="label">商品描述</label>
-      <textarea class="textarea" name="description" rows="4" maxlength="2000"><%= isEdit ? (product.description || '') : '' %></textarea>
-    </div>
+        <div class="field">
+          <label class="label">商品描述</label>
+          <textarea class="textarea" name="description" rows="4" maxlength="2000"><%= isEdit ? (product.description || '') : '' %></textarea>
+        </div>
 
-    <div class="field">
-      <label class="label">商品图片</label>
-      <input class="input" type="file" name="image" accept="image/*">
-      <% if (isEdit && product.image_url) { %>
-        <div class="help">当前图片：<%= product.image_url %></div>
-      <% } %>
-      <label class="label">商品图片 URL</label>
-      <input class="input" name="image_url" value="<%= isEdit ? (product.image_url || '') : '' %>" placeholder="https://">
-    </div>
+        <div class="field">
+          <label class="label">商品图片</label>
+          <input class="input" type="file" name="image" accept="image/*">
+          <% if (isEdit && product.image_url) { %>
+            <div class="help">当前图片：<%= product.image_url %></div>
+          <% } %>
+          <label class="label">商品图片 URL</label>
+          <input class="input" name="image_url" value="<%= isEdit ? (product.image_url || '') : '' %>" placeholder="https://">
+        </div>
 
-    <div class="field">
-      <label class="label">价格（元）</label>
-      <input class="input" name="price_yuan" type="number" step="0.01" min="0" required value="<%= isEdit ? (product.price_cents/100).toFixed(2) : '0.00' %>">
-    </div>
+        <div class="field">
+          <label class="label">价格（元）</label>
+          <input class="input" name="price_yuan" type="number" step="0.01" min="0" required value="<%= isEdit ? (product.price_cents/100).toFixed(2) : '0.00' %>">
+        </div>
 
         <label class="check">
           <input type="checkbox" name="is_active" <%= (isEdit ? product.is_active : true) ? 'checked' : '' %>>
