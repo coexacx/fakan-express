@@ -14,6 +14,40 @@ body{
   box-sizing:border-box;
 }
 
+.admin-shell{
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
+}
+.admin-sidebar{
+  width:200px;
+  flex-shrink:0;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  padding:12px;
+}
+.admin-content{
+  flex:1;
+  min-width:0;
+}
+.admin-nav{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.admin-nav-link{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-weight:700;
+}
+
 .topbar.admin{
   background:rgba(15,23,42,.88);
   border-bottom-color:rgba(148,163,184,.18);
@@ -110,5 +144,13 @@ body{
 
   .admin-login .card{
     max-width:100%;
+  }
+
+  .admin-shell{
+    flex-direction:column;
+  }
+
+  .admin-sidebar{
+    width:100%;
   }
 }
