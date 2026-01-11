@@ -1,0 +1,88 @@
+@import "/static/public.css";
+
+body{
+  background:var(--bg);
+}
+
+.topbar.admin{
+  background:rgba(15,23,42,.88);
+  border-bottom-color:rgba(148,163,184,.18);
+}
+.topbar.admin .brand,
+.topbar.admin .topbar-right a,
+.topbar.admin .topbar-right button{
+  color:#fff;
+}
+.topbar.admin .btn{
+  border-color:rgba(255,255,255,.2);
+}
+
+.admin-page-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:16px;
+}
+.admin-title{
+  margin:0;
+  font-size:20px;
+}
+.admin-subtitle{
+  color:var(--muted);
+  font-size:13px;
+  margin-top:6px;
+}
+
+.admin-section{
+  margin-top:16px;
+}
+
+.admin-filters{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-items:flex-end;
+}
+
+.admin-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.admin-actions .btn.small,
+.btn.small{
+  padding:6px 10px;
+  font-size:13px;
+  border-radius:10px;
+}
+
+.admin-table th:last-child,
+.admin-table td:last-child{
+  text-align:right;
+}
+
+.table-note{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.inline-form{
+  display:inline;
+}
+
+.check{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+}
+
+.text-right{
+  text-align:right;
+}
+
+.card .table{
+  margin-top:0;
+}
