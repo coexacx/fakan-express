@@ -94,8 +94,13 @@ async function adminUpdateProduct(productId, { name, description, price_cents, i
 }
 
 async function adminDeleteProduct(productId) {
-  // Will fail if there are keys/orders referencing due to FK restrict.
-  await pool.query('DELETE FROM products WHERE id = $1', [productId]);
+  const { rowCount } = await pool.query('DELETE FROM products WHERE id = $1', [productId]);
+  if (rowCount === 0) {
+    const err = new Error('商品不存在或已删除');
+    err.code = 'NOT_FOUND';
+    throw err;
+  }
+  return { status: 'deleted', message: '商品已删除，关联库存与订单明细已同步清理' };
 }
 
 async function adminImportCardKeys(productId, codes) {

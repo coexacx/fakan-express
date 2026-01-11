@@ -38,7 +38,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE TABLE IF NOT EXISTS order_items (
   id BIGSERIAL PRIMARY KEY,
   order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-  product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+  product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   qty INT NOT NULL CHECK (qty > 0),
   unit_price_cents BIGINT NOT NULL CHECK (unit_price_cents >= 0),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -48,7 +48,7 @@ CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
 
 CREATE TABLE IF NOT EXISTS card_keys (
   id BIGSERIAL PRIMARY KEY,
-  product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+  product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   code_encrypted TEXT NOT NULL,
   code_sha256 TEXT NOT NULL,
   status TEXT NOT NULL, -- available/reserved/sold
