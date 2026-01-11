@@ -30,6 +30,7 @@ const {
   verifyAdminPassword,
   updateAdminCredentials,
 } = require('../services/adminService');
+const { getSiteSettings, updateSiteSettings } = require('../services/siteSettingsService');
 
 const router = express.Router();
 const uploadDir = path.join(__dirname, '..', 'static', 'uploads');
@@ -203,6 +204,43 @@ router.post('/security', requireAdmin, async (req, res) => {
     req.session.flash = { type: 'danger', message };
     return res.redirect('/admin/security');
   }
+});
+
+// ---- Site Settings ----
+router.get('/site-settings', requireAdmin, async (req, res) => {
+  const settings = await getSiteSettings();
+  res.render('admin/site_settings', { title: '站点设置', settings });
+});
+
+router.post('/site-settings', requireAdmin, upload.single('middle_bg_image'), async (req, res) => {
+  const siteTitle = String(req.body.site_title || '').trim();
+  const footerLeft = String(req.body.footer_left || '').trim();
+  const footerRight = String(req.body.footer_right || '').trim();
+  const announcement = String(req.body.announcement || '').trim();
+  const topBgColor = String(req.body.top_bg_color || '').trim();
+  const middleBgColor = String(req.body.middle_bg_color || '').trim();
+  const cardBgColor = String(req.body.card_bg_color || '').trim();
+  const footerBgColor = String(req.body.footer_bg_color || '').trim();
+
+  try {
+    const settings = await getSiteSettings();
+    const middleBgImageUrl = req.file ? `/static/uploads/${req.file.filename}` : settings.middle_bg_image_url;
+    await updateSiteSettings({
+      siteTitle,
+      footerLeft,
+      footerRight,
+      announcement,
+      topBgColor,
+      middleBgColor,
+      cardBgColor,
+      footerBgColor,
+      middleBgImageUrl,
+    });
+    req.session.flash = { type: 'success', message: '站点设置已更新' };
+  } catch (e) {
+    req.session.flash = { type: 'danger', message: e.message || '站点设置更新失败' };
+  }
+  return res.redirect('/admin/site-settings');
 });
 
 // ---- Dashboard ----

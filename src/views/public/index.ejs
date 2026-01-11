@@ -2,7 +2,9 @@
 
 <section class="hero">
   <h1>商品列表</h1>
-  <p>即时发货 · 无需登录 · 下单后保存订单链接即可取卡密</p>
+  <% if (siteSettings && siteSettings.announcement) { %>
+    <div class="alert alert-info"><strong>公告：</strong><%= siteSettings.announcement %></div>
+  <% } %>
 </section>
 
 <% if (!products || products.length === 0) { %>

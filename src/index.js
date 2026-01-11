@@ -13,6 +13,7 @@ const { publicRouter } = require('./routes/public');
 const { adminRouter } = require('./routes/admin');
 const { bootstrapAdminIfNeeded } = require('./services/adminService');
 const { releaseExpiredReservations } = require('./services/orderService');
+const { getSiteSettings } = require('./services/siteSettingsService');
 
 async function waitForDb(maxRetries = 30) {
   for (let i = 1; i <= maxRetries; i += 1) {
@@ -106,6 +107,15 @@ async function main() {
     res.locals.flash = req.session.flash || null;
     delete req.session.flash;
 
+    next();
+  });
+
+  app.use(async (req, res, next) => {
+    try {
+      res.locals.siteSettings = await getSiteSettings();
+    } catch (e) {
+      res.locals.siteSettings = null;
+    }
     next();
   });
 
