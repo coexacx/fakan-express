@@ -101,15 +101,11 @@ body{
   align-items:center;
   justify-content:space-between;
   gap:12px;
-  padding:10px 16px;
-  border:1px solid var(--border);
-  border-radius:999px;
-  background:#fff;
-  flex-wrap:nowrap;
   padding:10px 12px;
   border:1px solid var(--border);
   border-radius:12px;
   background:#fff;
+  flex-wrap:wrap;
 }
 .card-key-meta{
   display:flex;

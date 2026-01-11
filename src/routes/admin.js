@@ -269,10 +269,10 @@ router.post('/products/new', requireAdmin, upload.single('image'), async (req, r
     if (!Number.isFinite(priceYuan) || priceYuan < 0) throw new Error('价格不正确');
 
     const price_cents = Math.round(priceYuan * 100);
-    await adminCreateProduct({ name, description, image_url, price_cents, is_active });
+    const product = await adminCreateProduct({ name, description, image_url, price_cents, is_active });
 
     req.session.flash = { type: 'success', message: '商品已创建' };
-    return res.redirect('/admin/products');
+    return res.redirect(`/admin/products/${product.id}/edit`);
   } catch (e) {
     req.session.flash = { type: 'danger', message: e.message || '创建失败' };
     return res.redirect('/admin/products/new');
@@ -312,7 +312,7 @@ router.post('/products/:id/edit', requireAdmin, upload.single('image'), async (r
     await adminUpdateProduct(productId, { name, description, image_url, price_cents, is_active });
 
     req.session.flash = { type: 'success', message: '商品已更新' };
-    return res.redirect('/admin/products');
+    return res.redirect(`/admin/products/${productId}/edit`);
   } catch (e) {
     req.session.flash = { type: 'danger', message: e.message || '更新失败' };
     return res.redirect('back');

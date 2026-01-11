@@ -8,7 +8,7 @@ const rateLimit = require('express-rate-limit');
 const PgSession = require('connect-pg-simple')(session);
 
 const { config } = require('./config');
-const { pool, ping } = require('./db');
+const { pool, ping, ensureSchema } = require('./db');
 const { publicRouter } = require('./routes/public');
 const { adminRouter } = require('./routes/admin');
 const { bootstrapAdminIfNeeded } = require('./services/adminService');
@@ -30,6 +30,7 @@ async function waitForDb(maxRetries = 30) {
 
 async function main() {
   await waitForDb();
+  await ensureSchema();
 
   // Bootstrap first admin account if needed
   try {
