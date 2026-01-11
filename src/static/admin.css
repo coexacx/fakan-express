@@ -114,11 +114,16 @@ body{
   flex-direction:column;
   gap:4px;
   min-width:0;
+  flex:1;
 }
 .card-key-actions{
   display:flex;
   align-items:center;
   gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  flex-shrink:0;
+  text-align:right;
   flex-shrink:0;
 }
 .card-key-text{
@@ -128,6 +133,10 @@ body{
 .card-key-sold{
   color:var(--muted);
   background:#f1f5f9;
+}
+.card-key-sold-time{
+  font-size:12px;
+  white-space:nowrap;
 }
 
 .topbar.admin{

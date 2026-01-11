@@ -2,9 +2,18 @@
 
 <div class="layout">
   <section class="card">
-    <div class="card-top">
-      <h1 class="card-title" style="margin:0;font-size:20px;"><%= product.name %></h1>
-      <span class="pill info">可用库存 <%= product.available_count %></span>
+    <div class="product-header">
+      <div class="product-media">
+        <% if (product.image_url) { %>
+          <img src="<%= product.image_url %>" alt="<%= product.name %>">
+        <% } else { %>
+          <div class="product-media-fallback">暂无图片</div>
+        <% } %>
+      </div>
+      <div class="product-info">
+        <h1 class="card-title" style="margin:0;font-size:20px;"><%= product.name %></h1>
+        <span class="pill info">可用库存 <%= product.available_count %></span>
+      </div>
     </div>
     <div class="price">￥<%= formatMoney(product.price_cents) %></div>
     <div class="prose" style="margin-top:12px;"><%= product.description || '暂无介绍' %></div>
@@ -32,10 +41,14 @@
       </div>
 
       <div class="btnrow">
-        <button class="btn success block" type="submit">提交订单</button>
+        <button class="btn success block" type="submit" <%= product.available_count > 0 ? '' : 'disabled' %>>提交订单</button>
       </div>
 
-      <div class="help" style="margin-top:10px;">下单后系统会预留库存一段时间，请尽快完成支付。</div>
+      <% if (product.available_count > 0) { %>
+        <div class="help" style="margin-top:10px;">下单后系统会预留库存一段时间，请尽快完成支付。</div>
+      <% } else { %>
+        <div class="help" style="margin-top:10px;">库存不足，暂时无法购买。</div>
+      <% } %>
     </form>
   </aside>
 </div>

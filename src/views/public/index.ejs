@@ -10,20 +10,51 @@
 <% } else { %>
   <div class="grid">
     <% products.forEach(p => { %>
-      <a class="card card-link" href="/product/<%= p.id %>">
-        <div class="card-top">
-          <div class="card-title"><%= p.name %></div>
-          <span class="pill info">库存 <%= p.available_count %></span>
+      <% if (p.available_count > 0) { %>
+        <a class="card card-link product-card" href="/product/<%= p.id %>">
+          <div class="product-header">
+            <div class="product-media">
+              <% if (p.image_url) { %>
+                <img src="<%= p.image_url %>" alt="<%= p.name %>">
+              <% } else { %>
+                <div class="product-media-fallback">暂无图片</div>
+              <% } %>
+            </div>
+            <div class="product-info">
+              <div class="card-title"><%= p.name %></div>
+              <span class="pill info">库存 <%= p.available_count %></span>
+            </div>
+          </div>
+          <div class="price">￥<%= formatMoney(p.price_cents) %></div>
+          <div class="desc"><%= (p.description || '暂无介绍').slice(0, 88) %></div>
+          <div class="btnrow">
+            <span class="btn primary">立即购买</span>
+          </div>
+        </a>
+      <% } else { %>
+        <div class="card product-card product-card-soldout" aria-disabled="true">
+          <div class="product-header">
+            <div class="product-media">
+              <% if (p.image_url) { %>
+                <img src="<%= p.image_url %>" alt="<%= p.name %>">
+              <% } else { %>
+                <div class="product-media-fallback">暂无图片</div>
+              <% } %>
+            </div>
+            <div class="product-info">
+              <div class="card-title"><%= p.name %></div>
+              <span class="pill">库存 0</span>
+            </div>
+          </div>
+          <div class="price">￥<%= formatMoney(p.price_cents) %></div>
+          <div class="desc"><%= (p.description || '暂无介绍').slice(0, 88) %></div>
+          <div class="btnrow">
+            <span class="btn" aria-disabled="true">库存不足</span>
+          </div>
         </div>
-        <div class="price">￥<%= formatMoney(p.price_cents) %></div>
-        <div class="desc"><%= (p.description || '暂无介绍').slice(0, 88) %></div>
-        <div class="btnrow">
-          <span class="btn primary">立即购买</span>
-        </div>
-      </a>
+      <% } %>
     <% }) %>
   </div>
 <% } %>
 
 <%- include('../partials/public_footer') %>
-

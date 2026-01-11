@@ -64,43 +64,63 @@ async function adminGetProduct(productId) {
   return rows[0] || null;
 }
 
-async function adminCreateProduct({ name, description, price_cents, is_active }) {
+async function adminCreateProduct({ name, description, image_url, price_cents, is_active }) {
   const { rows } = await pool.query(
     `
-    INSERT INTO products (name, description, price_cents, is_active, created_at, updated_at)
-    VALUES ($1, $2, $3, $4, NOW(), NOW())
+    INSERT INTO products (name, description, image_url, price_cents, is_active, created_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
     RETURNING *
     `,
-    [name, description || null, price_cents, is_active]
+    [name, description || null, image_url || null, price_cents, is_active]
   );
   return rows[0];
 }
 
-async function adminUpdateProduct(productId, { name, description, price_cents, is_active }) {
+async function adminUpdateProduct(productId, { name, description, image_url, price_cents, is_active }) {
   const { rows } = await pool.query(
     `
     UPDATE products
     SET name = $2,
         description = $3,
-        price_cents = $4,
-        is_active = $5,
+        image_url = $4,
+        price_cents = $5,
+        is_active = $6,
         updated_at = NOW()
     WHERE id = $1
     RETURNING *
     `,
-    [productId, name, description || null, price_cents, is_active]
+    [productId, name, description || null, image_url || null, price_cents, is_active]
   );
   return rows[0] || null;
 }
 
 async function adminDeleteProduct(productId) {
-  const { rowCount } = await pool.query('DELETE FROM products WHERE id = $1', [productId]);
-  if (rowCount === 0) {
-    const err = new Error('商品不存在或已删除');
-    err.code = 'NOT_FOUND';
-    throw err;
-  }
-  return { status: 'deleted', message: '商品已删除，关联库存与订单明细已同步清理' };
+  return tx(async (client) => {
+    await client.query('DELETE FROM card_keys WHERE product_id = $1', [productId]);
+    await client.query('DELETE FROM order_items WHERE product_id = $1', [productId]);
+
+    const { rowCount } = await client.query('DELETE FROM products WHERE id = $1', [productId]);
+    if (rowCount === 0) {
+      const err = new Error('商品不存在或已删除');
+      err.code = 'NOT_FOUND';
+      throw err;
+    }
+    return { status: 'deleted', message: '商品已删除，关联库存与订单明细已同步清理' };
+  });
+}
+
+async function adminSetProductActive(productId, is_active) {
+  const { rows } = await pool.query(
+    `
+    UPDATE products
+    SET is_active = $2,
+        updated_at = NOW()
+    WHERE id = $1
+    RETURNING *
+    `,
+    [productId, is_active]
+  );
+  return rows[0] || null;
 }
 
 async function adminImportCardKeys(productId, codes) {
@@ -230,6 +250,7 @@ module.exports = {
   adminCreateProduct,
   adminUpdateProduct,
   adminDeleteProduct,
+  adminSetProductActive,
   adminImportCardKeys,
   adminInventoryStats,
   adminListCardKeys,

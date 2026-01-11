@@ -52,6 +52,9 @@
         <div class="card-key-row <%= k.status === 'sold' ? 'card-key-sold' : '' %>">
           <div class="card-key-meta">
             <div class="card-key-text"><%= k.code_plain %></div>
+          </div>
+          <div class="card-key-actions">
+            <% if (k.status !== 'sold') { %>
             <div class="muted">ID: <%= k.id %></div>
           </div>
           <div class="card-key-actions">
@@ -69,6 +72,9 @@
               </form>
             <% } else { %>
               <span class="pill">已售出</span>
+              <span class="muted card-key-sold-time">售出时间：<%= k.sold_at ? new Date(k.sold_at).toLocaleString() : '-' %></span>
+            <% } %>
+          </div>
               <span class="muted">售出时间：<%= k.sold_at ? new Date(k.sold_at).toLocaleString() : '-' %></span>
             <% } %>
           </div>

@@ -7,6 +7,7 @@ const {
   adminCreateProduct,
   adminUpdateProduct,
   adminDeleteProduct,
+  adminSetProductActive,
   adminImportCardKeys,
   adminInventoryStats,
   adminListCardKeys,
@@ -239,6 +240,7 @@ router.post('/products/new', requireAdmin, async (req, res) => {
   try {
     const name = String(req.body.name || '').trim();
     const description = String(req.body.description || '').trim();
+    const image_url = String(req.body.image_url || '').trim();
     const priceYuan = Number(req.body.price_yuan || 0);
     const is_active = req.body.is_active === 'on';
 
@@ -246,7 +248,7 @@ router.post('/products/new', requireAdmin, async (req, res) => {
     if (!Number.isFinite(priceYuan) || priceYuan < 0) throw new Error('价格不正确');
 
     const price_cents = Math.round(priceYuan * 100);
-    await adminCreateProduct({ name, description, price_cents, is_active });
+    await adminCreateProduct({ name, description, image_url, price_cents, is_active });
 
     req.session.flash = { type: 'success', message: '商品已创建' };
     return res.redirect('/admin/products');
@@ -269,6 +271,7 @@ router.post('/products/:id/edit', requireAdmin, async (req, res) => {
     const productId = Number.parseInt(req.params.id, 10);
     const name = String(req.body.name || '').trim();
     const description = String(req.body.description || '').trim();
+    const image_url = String(req.body.image_url || '').trim();
     const priceYuan = Number(req.body.price_yuan || 0);
     const is_active = req.body.is_active === 'on';
 
@@ -277,7 +280,7 @@ router.post('/products/:id/edit', requireAdmin, async (req, res) => {
     if (!Number.isFinite(priceYuan) || priceYuan < 0) throw new Error('价格不正确');
 
     const price_cents = Math.round(priceYuan * 100);
-    await adminUpdateProduct(productId, { name, description, price_cents, is_active });
+    await adminUpdateProduct(productId, { name, description, image_url, price_cents, is_active });
 
     req.session.flash = { type: 'success', message: '商品已更新' };
     return res.redirect('/admin/products');
@@ -300,6 +303,20 @@ router.post('/products/:id/delete', requireAdmin, async (req, res) => {
       message = '商品不存在或已被删除';
     }
     req.session.flash = { type: 'danger', message };
+  }
+  return res.redirect('/admin/products');
+});
+
+router.post('/products/:id/toggle', requireAdmin, async (req, res) => {
+  try {
+    const productId = Number.parseInt(req.params.id, 10);
+    const product = await adminGetProduct(productId);
+    if (!product) return res.status(404).send('Not found');
+    const nextActive = !product.is_active;
+    await adminSetProductActive(productId, nextActive);
+    req.session.flash = { type: 'success', message: nextActive ? '商品已上架' : '商品已下架' };
+  } catch (e) {
+    req.session.flash = { type: 'danger', message: e.message || '操作失败' };
   }
   return res.redirect('/admin/products');
 });
