@@ -1,0 +1,74 @@
+<%- include('../partials/header', { title, admin, flash }) %>
+
+<div class="admin-shell">
+  <%- include('../partials/admin_sidebar') %>
+  <div class="admin-content">
+    <div class="admin-page-header">
+      <div>
+        <h1 class="admin-title">卡密管理</h1>
+        <div class="admin-subtitle">选择商品并查看已售出/未售出卡密</div>
+      </div>
+    </div>
+
+    <% if (!products || products.length === 0) { %>
+      <div class="card">
+        <div class="table-note">暂无商品，无法查看卡密。</div>
+      </div>
+    <% } else { %>
+      <div class="card">
+        <form class="card-keys-toolbar" method="get" action="/admin/card-keys">
+          <div class="field">
+            <label class="label">商品</label>
+            <select class="input" name="product_id" onchange="this.form.submit()">
+              <% products.forEach(p => { %>
+                <option value="<%= p.id %>" <%= p.id === selectedProductId ? 'selected' : '' %>><%= p.name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label">状态</label>
+            <div class="btnrow">
+              <a class="btn small <%= status === 'available' ? 'primary' : '' %>" href="/admin/card-keys?product_id=<%= selectedProductId %>&status=available<%= q ? '&q=' + encodeURIComponent(q) : '' %>">未售出</a>
+              <a class="btn small <%= status === 'sold' ? 'primary' : '' %>" href="/admin/card-keys?product_id=<%= selectedProductId %>&status=sold<%= q ? '&q=' + encodeURIComponent(q) : '' %>">已售出</a>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">搜索卡密</label>
+            <input class="input" name="q" value="<%= q %>" placeholder="输入关键字">
+          </div>
+          <div class="btnrow">
+            <input type="hidden" name="status" value="<%= status %>">
+            <button class="btn primary" type="submit">搜索</button>
+          </div>
+        </form>
+      </div>
+    <% } %>
+
+    <div class="admin-section card-keys-list">
+      <% if (!keys || keys.length === 0) { %>
+        <div class="table-note">暂无卡密</div>
+      <% } %>
+      <% keys.forEach(k => { %>
+        <div class="card-key-row <%= k.status === 'sold' ? 'card-key-sold' : '' %>">
+          <div class="card-key-meta">
+            <div class="card-key-text"><%= k.code_plain %></div>
+          </div>
+          <div class="card-key-actions">
+            <% if (k.status !== 'sold') { %>
+              <a class="btn small" href="/admin/card-keys/<%= k.id %>/edit">编辑</a>
+              <form method="post" action="/admin/card-keys/<%= k.id %>/delete" class="inline-form" onsubmit="return confirm('确定删除该卡密？')">
+                <input type="hidden" name="product_id" value="<%= selectedProductId %>">
+                <button class="btn small" type="submit">删除</button>
+              </form>
+            <% } else { %>
+              <span class="pill">已售出</span>
+              <span class="muted card-key-sold-time">售出时间：<%= k.sold_at ? new Date(k.sold_at).toLocaleString() : '-' %></span>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

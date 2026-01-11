@@ -1,4 +1,7 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 const { pool } = require('../db');
 const { requireAdmin } = require('../middleware/adminAuth');
 const {
@@ -7,8 +10,13 @@ const {
   adminCreateProduct,
   adminUpdateProduct,
   adminDeleteProduct,
+  adminSetProductActive,
   adminImportCardKeys,
   adminInventoryStats,
+  adminListCardKeys,
+  adminGetCardKey,
+  adminUpdateCardKey,
+  adminDeleteCardKey,
 } = require('../services/productService');
 const {
   listOrdersAdmin,
@@ -20,9 +28,24 @@ const {
 const {
   findAdminByUsername,
   verifyAdminPassword,
+  updateAdminCredentials,
 } = require('../services/adminService');
 
 const router = express.Router();
+const uploadDir = path.join(__dirname, '..', 'static', 'uploads');
+fs.mkdirSync(uploadDir, { recursive: true });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination(req, file, cb) {
+      cb(null, uploadDir);
+    },
+    filename(req, file, cb) {
+      const ext = path.extname(file.originalname || '') || '.png';
+      const name = `product-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      cb(null, name);
+    },
+  }),
+});
 
 // ---- Auth ----
 router.get('/login', (req, res) => {
@@ -61,12 +84,149 @@ router.post('/logout', requireAdmin, (req, res) => {
   return res.redirect('/admin/login');
 });
 
+// ---- Card Keys ----
+router.get('/card-keys', requireAdmin, async (req, res) => {
+  const products = await adminListProducts();
+  const selectedProductId = Number.parseInt(req.query.product_id, 10) || (products[0] ? products[0].id : null);
+  const status = req.query.status === 'sold' ? 'sold' : 'available';
+  const q = String(req.query.q || '').trim();
+
+  let keys = [];
+  if (selectedProductId) {
+    keys = await adminListCardKeys({ productId: selectedProductId, status });
+    if (q) {
+      const qLower = q.toLowerCase();
+      keys = keys.filter((k) => k.code_plain.toLowerCase().includes(qLower));
+    }
+  }
+
+  res.render('admin/card_keys', {
+    title: '卡密管理',
+    products,
+    selectedProductId,
+    status,
+    q,
+    keys,
+  });
+});
+
+router.get('/card-keys/:id/edit', requireAdmin, async (req, res) => {
+  const cardKeyId = Number.parseInt(req.params.id, 10);
+  const cardKey = await adminGetCardKey(cardKeyId);
+  if (!cardKey) return res.status(404).send('Not found');
+  if (cardKey.status !== 'available') return res.status(400).send('Card key is not editable');
+
+  res.render('admin/card_key_edit', { title: '编辑卡密', cardKey });
+});
+
+router.post('/card-keys/:id/edit', requireAdmin, async (req, res) => {
+  const cardKeyId = Number.parseInt(req.params.id, 10);
+  const code = String(req.body.code || '').trim();
+  const productId = Number.parseInt(req.body.product_id, 10);
+
+  if (!code) {
+    req.session.flash = { type: 'danger', message: '卡密内容不能为空' };
+    return res.redirect(`/admin/card-keys/${cardKeyId}/edit`);
+  }
+
+  try {
+    await adminUpdateCardKey(cardKeyId, code);
+    req.session.flash = { type: 'success', message: '卡密已更新' };
+  } catch (e) {
+    const message = e.code === '23505' ? '该卡密已存在' : (e.message || '更新失败');
+    req.session.flash = { type: 'danger', message };
+  }
+
+  if (Number.isInteger(productId)) {
+    return res.redirect(`/admin/card-keys?product_id=${productId}&status=available`);
+  }
+  return res.redirect('/admin/card-keys');
+});
+
+router.post('/card-keys/:id/delete', requireAdmin, async (req, res) => {
+  const cardKeyId = Number.parseInt(req.params.id, 10);
+  const productId = Number.parseInt(req.body.product_id, 10);
+
+  try {
+    await adminDeleteCardKey(cardKeyId);
+    req.session.flash = { type: 'success', message: '卡密已删除' };
+  } catch (e) {
+    req.session.flash = { type: 'danger', message: e.message || '删除失败' };
+  }
+
+  if (Number.isInteger(productId)) {
+    return res.redirect(`/admin/card-keys?product_id=${productId}&status=available`);
+  }
+  return res.redirect('/admin/card-keys');
+});
+
+// ---- Security ----
+router.get('/security', requireAdmin, (req, res) => {
+  res.render('admin/security', { title: '安全设置' });
+});
+
+router.post('/security', requireAdmin, async (req, res) => {
+  const currentPassword = String(req.body.current_password || '');
+  const username = String(req.body.username || '').trim();
+  const newPassword = String(req.body.new_password || '');
+  const confirmPassword = String(req.body.confirm_password || '');
+
+  if (!currentPassword || !username || !newPassword) {
+    req.session.flash = { type: 'danger', message: '请完整填写账号与密码' };
+    return res.redirect('/admin/security');
+  }
+
+  if (newPassword !== confirmPassword) {
+    req.session.flash = { type: 'danger', message: '两次输入的新密码不一致' };
+    return res.redirect('/admin/security');
+  }
+
+  const admin = await findAdminByUsername(req.session.admin.username);
+  if (!admin) {
+    req.session.flash = { type: 'danger', message: '管理员信息不存在' };
+    return res.redirect('/admin/security');
+  }
+
+  const ok = await verifyAdminPassword(admin, currentPassword);
+  if (!ok) {
+    req.session.flash = { type: 'danger', message: '当前密码不正确' };
+    return res.redirect('/admin/security');
+  }
+
+  try {
+    const updated = await updateAdminCredentials(admin.id, { username, password: newPassword });
+    req.session.admin.username = updated.username;
+    req.session.flash = { type: 'success', message: '账号与密码已更新' };
+    return res.redirect('/admin/security');
+  } catch (e) {
+    const message = e.code === '23505' ? '该账号已存在' : (e.message || '更新失败');
+    req.session.flash = { type: 'danger', message };
+    return res.redirect('/admin/security');
+  }
+});
+
 // ---- Dashboard ----
 router.get('/', requireAdmin, async (req, res) => {
-  const [{ rows: prodRows }, { rows: keyRows }, { rows: pendingRows }] = await Promise.all([
+  const [
+    { rows: prodRows },
+    { rows: keyRows },
+    { rows: pendingRows },
+    { rows: todayRows },
+    { rows: totalRows },
+    { rows: orderRows },
+  ] = await Promise.all([
     pool.query('SELECT COUNT(*)::int AS c FROM products'),
     pool.query("SELECT COUNT(*)::int AS c FROM card_keys WHERE status='available'"),
     pool.query("SELECT COUNT(*)::int AS c FROM orders WHERE status IN ('pending','paid','delivery_failed')"),
+    pool.query(
+      "SELECT COALESCE(SUM(total_cents), 0)::bigint AS total FROM orders WHERE status IN ('paid','delivered') AND created_at >= NOW() - INTERVAL '24 hours'"
+    ),
+    pool.query(
+      "SELECT COALESCE(SUM(total_cents), 0)::bigint AS total FROM orders WHERE status IN ('paid','delivered')"
+    ),
+    pool.query(
+      "SELECT COUNT(*)::int AS c FROM orders WHERE status IN ('paid','delivered')"
+    ),
   ]);
 
   res.render('admin/dashboard', {
@@ -75,7 +235,11 @@ router.get('/', requireAdmin, async (req, res) => {
       products: prodRows[0].c,
       availableKeys: keyRows[0].c,
       openOrders: pendingRows[0].c,
+      todayRevenue: Number(todayRows[0].total),
+      totalRevenue: Number(totalRows[0].total),
+      totalOrders: orderRows[0].c,
     },
+    formatMoney,
   });
 });
 
@@ -89,10 +253,11 @@ router.get('/products/new', requireAdmin, async (req, res) => {
   res.render('admin/product_form', { title: '新增商品', product: null });
 });
 
-router.post('/products/new', requireAdmin, async (req, res) => {
+router.post('/products/new', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const name = String(req.body.name || '').trim();
     const description = String(req.body.description || '').trim();
+    const image_url = req.file ? `/static/uploads/${req.file.filename}` : null;
     const priceYuan = Number(req.body.price_yuan || 0);
     const is_active = req.body.is_active === 'on';
 
@@ -100,7 +265,7 @@ router.post('/products/new', requireAdmin, async (req, res) => {
     if (!Number.isFinite(priceYuan) || priceYuan < 0) throw new Error('价格不正确');
 
     const price_cents = Math.round(priceYuan * 100);
-    await adminCreateProduct({ name, description, price_cents, is_active });
+    await adminCreateProduct({ name, description, image_url, price_cents, is_active });
 
     req.session.flash = { type: 'success', message: '商品已创建' };
     return res.redirect('/admin/products');
@@ -118,11 +283,14 @@ router.get('/products/:id/edit', requireAdmin, async (req, res) => {
   res.render('admin/product_form', { title: '编辑商品', product });
 });
 
-router.post('/products/:id/edit', requireAdmin, async (req, res) => {
+router.post('/products/:id/edit', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const productId = Number.parseInt(req.params.id, 10);
     const name = String(req.body.name || '').trim();
     const description = String(req.body.description || '').trim();
+    const existing = await adminGetProduct(productId);
+    if (!existing) return res.status(404).send('Not found');
+    const image_url = req.file ? `/static/uploads/${req.file.filename}` : existing.image_url;
     const priceYuan = Number(req.body.price_yuan || 0);
     const is_active = req.body.is_active === 'on';
 
@@ -131,7 +299,7 @@ router.post('/products/:id/edit', requireAdmin, async (req, res) => {
     if (!Number.isFinite(priceYuan) || priceYuan < 0) throw new Error('价格不正确');
 
     const price_cents = Math.round(priceYuan * 100);
-    await adminUpdateProduct(productId, { name, description, price_cents, is_active });
+    await adminUpdateProduct(productId, { name, description, image_url, price_cents, is_active });
 
     req.session.flash = { type: 'success', message: '商品已更新' };
     return res.redirect('/admin/products');
@@ -148,12 +316,24 @@ router.post('/products/:id/delete', requireAdmin, async (req, res) => {
     req.session.flash = { type: 'success', message: result.message };
   } catch (e) {
     let message = e.message || '删除失败';
-    if (e.code === '23503') {
-      message = '删除失败：商品仍被订单或库存引用，请先清理关联数据';
-    } else if (e.code === 'NOT_FOUND') {
+    if (e.code === 'NOT_FOUND') {
       message = '商品不存在或已被删除';
     }
     req.session.flash = { type: 'danger', message };
+  }
+  return res.redirect('/admin/products');
+});
+
+router.post('/products/:id/toggle', requireAdmin, async (req, res) => {
+  try {
+    const productId = Number.parseInt(req.params.id, 10);
+    const product = await adminGetProduct(productId);
+    if (!product) return res.status(404).send('Not found');
+    const nextActive = !product.is_active;
+    await adminSetProductActive(productId, nextActive);
+    req.session.flash = { type: 'success', message: nextActive ? '商品已上架' : '商品已下架' };
+  } catch (e) {
+    req.session.flash = { type: 'danger', message: e.message || '操作失败' };
   }
   return res.redirect('/admin/products');
 });
