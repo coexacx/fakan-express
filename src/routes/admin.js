@@ -257,6 +257,11 @@ router.post('/products/new', requireAdmin, upload.single('image'), async (req, r
   try {
     const name = String(req.body.name || '').trim();
     const description = String(req.body.description || '').trim();
+    let image_url = req.file ? `/static/uploads/${req.file.filename}` : null;
+    if (!image_url) {
+      const fallbackUrl = String(req.body.image_url || '').trim();
+      image_url = fallbackUrl || null;
+    }
     const image_url = req.file ? `/static/uploads/${req.file.filename}` : null;
     const image_url = String(req.body.image_url || '').trim();
     const priceYuan = Number(req.body.price_yuan || 0);
@@ -291,6 +296,10 @@ router.post('/products/:id/edit', requireAdmin, upload.single('image'), async (r
     const description = String(req.body.description || '').trim();
     const existing = await adminGetProduct(productId);
     if (!existing) return res.status(404).send('Not found');
+    let image_url = existing.image_url;
+    if (req.file) {
+      image_url = `/static/uploads/${req.file.filename}`;
+    }
     const image_url = req.file ? `/static/uploads/${req.file.filename}` : existing.image_url;
     const image_url = String(req.body.image_url || '').trim();
     const priceYuan = Number(req.body.price_yuan || 0);
