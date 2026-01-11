@@ -9,6 +9,10 @@ const {
   adminDeleteProduct,
   adminImportCardKeys,
   adminInventoryStats,
+  adminListCardKeys,
+  adminGetCardKey,
+  adminUpdateCardKey,
+  adminDeleteCardKey,
 } = require('../services/productService');
 const {
   listOrdersAdmin,
@@ -60,6 +64,82 @@ router.post('/logout', requireAdmin, (req, res) => {
   req.session.admin = null;
   req.session.flash = { type: 'success', message: '已退出登录' };
   return res.redirect('/admin/login');
+});
+
+// ---- Card Keys ----
+router.get('/card-keys', requireAdmin, async (req, res) => {
+  const products = await adminListProducts();
+  const selectedProductId = Number.parseInt(req.query.product_id, 10) || (products[0] ? products[0].id : null);
+  const status = req.query.status === 'sold' ? 'sold' : 'available';
+  const q = String(req.query.q || '').trim();
+
+  let keys = [];
+  if (selectedProductId) {
+    keys = await adminListCardKeys({ productId: selectedProductId, status });
+    if (q) {
+      const qLower = q.toLowerCase();
+      keys = keys.filter((k) => k.code_plain.toLowerCase().includes(qLower));
+    }
+  }
+
+  res.render('admin/card_keys', {
+    title: '卡密管理',
+    products,
+    selectedProductId,
+    status,
+    q,
+    keys,
+  });
+});
+
+router.get('/card-keys/:id/edit', requireAdmin, async (req, res) => {
+  const cardKeyId = Number.parseInt(req.params.id, 10);
+  const cardKey = await adminGetCardKey(cardKeyId);
+  if (!cardKey) return res.status(404).send('Not found');
+  if (cardKey.status !== 'available') return res.status(400).send('Card key is not editable');
+
+  res.render('admin/card_key_edit', { title: '编辑卡密', cardKey });
+});
+
+router.post('/card-keys/:id/edit', requireAdmin, async (req, res) => {
+  const cardKeyId = Number.parseInt(req.params.id, 10);
+  const code = String(req.body.code || '').trim();
+  const productId = Number.parseInt(req.body.product_id, 10);
+
+  if (!code) {
+    req.session.flash = { type: 'danger', message: '卡密内容不能为空' };
+    return res.redirect(`/admin/card-keys/${cardKeyId}/edit`);
+  }
+
+  try {
+    await adminUpdateCardKey(cardKeyId, code);
+    req.session.flash = { type: 'success', message: '卡密已更新' };
+  } catch (e) {
+    const message = e.code === '23505' ? '该卡密已存在' : (e.message || '更新失败');
+    req.session.flash = { type: 'danger', message };
+  }
+
+  if (Number.isInteger(productId)) {
+    return res.redirect(`/admin/card-keys?product_id=${productId}&status=available`);
+  }
+  return res.redirect('/admin/card-keys');
+});
+
+router.post('/card-keys/:id/delete', requireAdmin, async (req, res) => {
+  const cardKeyId = Number.parseInt(req.params.id, 10);
+  const productId = Number.parseInt(req.body.product_id, 10);
+
+  try {
+    await adminDeleteCardKey(cardKeyId);
+    req.session.flash = { type: 'success', message: '卡密已删除' };
+  } catch (e) {
+    req.session.flash = { type: 'danger', message: e.message || '删除失败' };
+  }
+
+  if (Number.isInteger(productId)) {
+    return res.redirect(`/admin/card-keys?product_id=${productId}&status=available`);
+  }
+  return res.redirect('/admin/card-keys');
 });
 
 // ---- Security ----

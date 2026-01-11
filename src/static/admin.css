@@ -85,6 +85,41 @@ body{
   background:#fff;
   font-weight:700;
 }
+.card-keys-toolbar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-items:flex-end;
+}
+.card-keys-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.card-key-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#fff;
+}
+.card-key-meta{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+.card-key-text{
+  font-weight:700;
+  word-break:break-all;
+}
+.card-key-sold{
+  color:var(--muted);
+  background:#f1f5f9;
+}
 
 .topbar.admin{
   background:rgba(15,23,42,.88);
@@ -205,5 +240,10 @@ body{
 
   .admin-nav-toggle:checked + .admin-nav-toggle-btn + .admin-sidebar{
     display:block;
+  }
+
+  .card-key-row{
+    align-items:flex-start;
+    flex-direction:column;
   }
 }
