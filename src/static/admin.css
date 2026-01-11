@@ -4,6 +4,16 @@ body{
   background:var(--bg);
 }
 
+.admin-login{
+  display:flex;
+  justify-content:center;
+}
+.admin-login .card{
+  width:100%;
+  max-width:420px;
+  box-sizing:border-box;
+}
+
 .topbar.admin{
   background:rgba(15,23,42,.88);
   border-bottom-color:rgba(148,163,184,.18);
@@ -88,4 +98,14 @@ body{
 
 .card .table{
   margin-top:0;
+}
+
+@media (max-width: 600px){
+  .admin-login{
+    padding:0 16px;
+  }
+
+  .admin-login .card{
+    max-width:100%;
+  }
 }
