@@ -24,6 +24,15 @@ async function createAdmin(username, password) {
   return rows[0];
 }
 
+async function updateAdminCredentials(adminId, { username, password }) {
+  const passwordHash = await bcrypt.hash(password, 12);
+  const { rows } = await pool.query(
+    'UPDATE admins SET username = $1, password_hash = $2 WHERE id = $3 RETURNING id, username',
+    [username, passwordHash, adminId]
+  );
+  return rows[0];
+}
+
 async function bootstrapAdminIfNeeded({ username, password }) {
   if (!username || !password) return { created: false, reason: 'missing_env' };
 
@@ -38,5 +47,6 @@ module.exports = {
   findAdminByUsername,
   verifyAdminPassword,
   createAdmin,
+  updateAdminCredentials,
   bootstrapAdminIfNeeded,
 };
