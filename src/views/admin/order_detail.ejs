@@ -2,88 +2,93 @@
 
 <% const o = data.order; %>
 
-<div class="admin-page-header">
-  <div>
-    <h1 class="admin-title">订单详情</h1>
-    <div class="admin-subtitle">订单号：<code><%= o.order_no %></code></div>
-  </div>
-  <a class="btn small" href="/admin/orders">返回订单列表</a>
-</div>
-
-<div class="card">
-  <div class="grid">
-    <div><strong>状态：</strong><%= o.status %></div>
-    <div><strong>金额：</strong>￥<%= formatMoney(o.total_cents) %></div>
-    <div><strong>联系方式：</strong><%= o.customer_contact %></div>
-    <div><strong>下单：</strong><%= new Date(o.created_at).toLocaleString() %></div>
-    <% if (o.paid_at) { %>
-      <div><strong>支付时间：</strong><%= new Date(o.paid_at).toLocaleString() %></div>
-    <% } %>
-    <% if (o.delivered_at) { %>
-      <div><strong>发货时间：</strong><%= new Date(o.delivered_at).toLocaleString() %></div>
-    <% } %>
-    <div>
-      <strong>前台访问链接：</strong>
-      <a href="/order/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>" target="_blank">
-        /order/<%= o.order_no %>/<%= o.access_token %>
-      </a>
+<div class="admin-shell">
+  <%- include('../partials/admin_sidebar') %>
+  <div class="admin-content">
+    <div class="admin-page-header">
+      <div>
+        <h1 class="admin-title">订单详情</h1>
+        <div class="admin-subtitle">订单号：<code><%= o.order_no %></code></div>
+      </div>
+      <a class="btn small" href="/admin/orders">返回订单列表</a>
     </div>
-  </div>
 
-  <div class="btnrow admin-section">
-    <form method="post" action="/admin/orders/<%= o.order_no %>/mark-paid" onsubmit="return confirm('确认将该订单标记为已支付并发货？')">
-      <button class="btn success" type="submit">标记已支付并发货</button>
-    </form>
-    <form method="post" action="/admin/orders/<%= o.order_no %>/cancel" onsubmit="return confirm('确认取消订单并释放预留库存？')">
-      <button class="btn" type="submit">取消订单</button>
-    </form>
-  </div>
-</div>
+    <div class="card">
+      <div class="grid">
+        <div><strong>状态：</strong><%= o.status %></div>
+        <div><strong>金额：</strong>￥<%= formatMoney(o.total_cents) %></div>
+        <div><strong>联系方式：</strong><%= o.customer_contact %></div>
+        <div><strong>下单：</strong><%= new Date(o.created_at).toLocaleString() %></div>
+        <% if (o.paid_at) { %>
+          <div><strong>支付时间：</strong><%= new Date(o.paid_at).toLocaleString() %></div>
+        <% } %>
+        <% if (o.delivered_at) { %>
+          <div><strong>发货时间：</strong><%= new Date(o.delivered_at).toLocaleString() %></div>
+        <% } %>
+        <div>
+          <strong>前台访问链接：</strong>
+          <a href="/order/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>" target="_blank">
+            /order/<%= o.order_no %>/<%= o.access_token %>
+          </a>
+        </div>
+      </div>
 
-<div class="card admin-section">
-  <h2 class="h2">商品明细</h2>
-  <table class="table admin-table">
-    <thead>
-      <tr>
-        <th>商品</th>
-        <th>数量</th>
-        <th>单价</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% data.items.forEach(it => { %>
-        <tr>
-          <td><%= it.product_name %></td>
-          <td><%= it.qty %></td>
-          <td>￥<%= formatMoney(it.unit_price_cents) %></td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
-</div>
+      <div class="btnrow admin-section">
+        <form method="post" action="/admin/orders/<%= o.order_no %>/mark-paid" onsubmit="return confirm('确认将该订单标记为已支付并发货？')">
+          <button class="btn success" type="submit">标记已支付并发货</button>
+        </form>
+        <form method="post" action="/admin/orders/<%= o.order_no %>/cancel" onsubmit="return confirm('确认取消订单并释放预留库存？')">
+          <button class="btn" type="submit">取消订单</button>
+        </form>
+      </div>
+    </div>
 
-<div class="layout admin-section">
-  <div class="card">
-    <h2 class="h2">预留卡密</h2>
-    <div class="muted">数量：<%= data.reservedKeys.length %></div>
-    <% if (data.reservedKeys.length > 0) { %>
-      <ul class="muted">
-        <% data.reservedKeys.forEach(k => { %>
-          <li>ID: <%= k.id %>（到期：<%= k.reserved_until ? new Date(k.reserved_until).toLocaleString() : '-' %>）</li>
-        <% }) %>
-      </ul>
-    <% } else { %>
-      <div class="muted">无</div>
-    <% } %>
-  </div>
-  <div class="card">
-    <h2 class="h2">已售卡密（发货内容）</h2>
-    <div class="muted">数量：<%= data.soldCodes.length %></div>
-    <% if (data.soldCodes.length > 0) { %>
-      <textarea class="codebox" rows="10" readonly><%= data.soldCodes.join('\n') %></textarea>
-    <% } else { %>
-      <div class="muted">未发货</div>
-    <% } %>
+    <div class="card admin-section">
+      <h2 class="h2">商品明细</h2>
+      <table class="table admin-table">
+        <thead>
+          <tr>
+            <th>商品</th>
+            <th>数量</th>
+            <th>单价</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% data.items.forEach(it => { %>
+            <tr>
+              <td><%= it.product_name %></td>
+              <td><%= it.qty %></td>
+              <td>￥<%= formatMoney(it.unit_price_cents) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="layout admin-section">
+      <div class="card">
+        <h2 class="h2">预留卡密</h2>
+        <div class="muted">数量：<%= data.reservedKeys.length %></div>
+        <% if (data.reservedKeys.length > 0) { %>
+          <ul class="muted">
+            <% data.reservedKeys.forEach(k => { %>
+              <li>ID: <%= k.id %>（到期：<%= k.reserved_until ? new Date(k.reserved_until).toLocaleString() : '-' %>）</li>
+            <% }) %>
+          </ul>
+        <% } else { %>
+          <div class="muted">无</div>
+        <% } %>
+      </div>
+      <div class="card">
+        <h2 class="h2">已售卡密（发货内容）</h2>
+        <div class="muted">数量：<%= data.soldCodes.length %></div>
+        <% if (data.soldCodes.length > 0) { %>
+          <textarea class="codebox" rows="10" readonly><%= data.soldCodes.join('\n') %></textarea>
+        <% } else { %>
+          <div class="muted">未发货</div>
+        <% } %>
+      </div>
+    </div>
   </div>
 </div>
 

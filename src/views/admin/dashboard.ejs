@@ -1,43 +1,42 @@
 <%- include('../partials/header', { title, admin, flash }) %>
 
-<div class="admin-page-header">
-  <div>
-    <h1 class="admin-title">后台管理</h1>
-    <div class="admin-subtitle">概览与快捷入口</div>
-  </div>
-</div>
+<div class="admin-shell">
+  <%- include('../partials/admin_sidebar') %>
+  <div class="admin-content">
+    <div class="admin-page-header">
+      <div>
+        <h1 class="admin-title">后台管理</h1>
+        <div class="admin-subtitle">概览与快捷入口</div>
+      </div>
+    </div>
 
-<div class="grid">
-  <div class="card">
-    <div class="card-title">商品数量</div>
-    <div class="muted">已上架商品数量</div>
-    <div class="price"><%= stats.products %></div>
-    <div class="btnrow">
-      <a href="/admin/products" class="btn">管理商品</a>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">商品数量</div>
+        <div class="muted">已上架商品数量</div>
+        <div class="price"><%= stats.products %></div>
+        <div class="btnrow">
+          <a href="/admin/products" class="btn">管理商品</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">可用卡密库存</div>
+        <div class="muted">当前可售库存</div>
+        <div class="price"><%= stats.availableKeys %></div>
+        <div class="btnrow">
+          <a href="/admin/products" class="btn">导入库存</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">待处理订单</div>
+        <div class="muted">需要发货的订单</div>
+        <div class="price"><%= stats.openOrders %></div>
+        <div class="btnrow">
+          <a href="/admin/orders" class="btn">查看订单</a>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="card">
-    <div class="card-title">可用卡密库存</div>
-    <div class="muted">当前可售库存</div>
-    <div class="price"><%= stats.availableKeys %></div>
-    <div class="btnrow">
-      <a href="/admin/products" class="btn">导入库存</a>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title">待处理订单</div>
-    <div class="muted">需要发货的订单</div>
-    <div class="price"><%= stats.openOrders %></div>
-    <div class="btnrow">
-      <a href="/admin/orders" class="btn">查看订单</a>
-    </div>
-  </div>
-</div>
-
-<div class="btnrow admin-section">
-  <a class="btn primary" href="/admin/products">商品管理</a>
-  <a class="btn primary" href="/admin/orders">订单管理</a>
-  <a class="btn" href="/">回到前台</a>
 </div>
 
 <%- include('../partials/footer') %>

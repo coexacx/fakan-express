@@ -1,60 +1,65 @@
 <%- include('../partials/header', { title, admin, flash }) %>
 
-<div class="admin-page-header">
-  <div>
-    <h1 class="admin-title">商品管理</h1>
-    <div class="admin-subtitle">维护商品与库存</div>
+<div class="admin-shell">
+  <%- include('../partials/admin_sidebar') %>
+  <div class="admin-content">
+    <div class="admin-page-header">
+      <div>
+        <h1 class="admin-title">商品管理</h1>
+        <div class="admin-subtitle">维护商品与库存</div>
+      </div>
+      <a class="btn success" href="/admin/products/new">新增商品</a>
+    </div>
+
+    <div class="card">
+      <table class="table admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>名称</th>
+            <th>价格</th>
+            <th>上架</th>
+            <th>库存(可用/预留/已售)</th>
+            <th class="text-right">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+        <% if (!products || products.length === 0) { %>
+          <tr><td colspan="6" class="table-note">暂无商品</td></tr>
+        <% } %>
+
+        <% products.forEach(p => { %>
+          <tr>
+            <td><%= p.id %></td>
+            <td><%= p.name %></td>
+            <td>￥<%= formatMoney(p.price_cents) %></td>
+            <td>
+              <% if (p.is_active) { %>
+                <span class="pill ok">是</span>
+              <% } else { %>
+                <span class="pill">否</span>
+              <% } %>
+            </td>
+            <td>
+              <span class="pill info"><%= p.available_count %></span>
+              /
+              <span class="pill warn"><%= p.reserved_count %></span>
+              /
+              <span class="pill ok"><%= p.sold_count %></span>
+            </td>
+            <td class="text-right admin-actions">
+              <a class="btn small" href="/admin/products/<%= p.id %>/inventory">库存</a>
+              <a class="btn small" href="/admin/products/<%= p.id %>/edit">编辑</a>
+              <form method="post" action="/admin/products/<%= p.id %>/delete" class="inline-form" onsubmit="return confirm('确定删除该商品？（若存在库存或订单引用会删除失败）')">
+                <button class="btn small" type="submit">删除</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <a class="btn success" href="/admin/products/new">新增商品</a>
-</div>
-
-<div class="card">
-  <table class="table admin-table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>名称</th>
-        <th>价格</th>
-        <th>上架</th>
-        <th>库存(可用/预留/已售)</th>
-        <th class="text-right">操作</th>
-      </tr>
-    </thead>
-    <tbody>
-    <% if (!products || products.length === 0) { %>
-      <tr><td colspan="6" class="table-note">暂无商品</td></tr>
-    <% } %>
-
-    <% products.forEach(p => { %>
-      <tr>
-        <td><%= p.id %></td>
-        <td><%= p.name %></td>
-        <td>￥<%= formatMoney(p.price_cents) %></td>
-        <td>
-          <% if (p.is_active) { %>
-            <span class="pill ok">是</span>
-          <% } else { %>
-            <span class="pill">否</span>
-          <% } %>
-        </td>
-        <td>
-          <span class="pill info"><%= p.available_count %></span>
-          /
-          <span class="pill warn"><%= p.reserved_count %></span>
-          /
-          <span class="pill ok"><%= p.sold_count %></span>
-        </td>
-        <td class="text-right admin-actions">
-          <a class="btn small" href="/admin/products/<%= p.id %>/inventory">库存</a>
-          <a class="btn small" href="/admin/products/<%= p.id %>/edit">编辑</a>
-          <form method="post" action="/admin/products/<%= p.id %>/delete" class="inline-form" onsubmit="return confirm('确定删除该商品？（若存在库存或订单引用会删除失败）')">
-            <button class="btn small" type="submit">删除</button>
-          </form>
-        </td>
-      </tr>
-    <% }) %>
-    </tbody>
-  </table>
 </div>
 
 <%- include('../partials/footer') %>
