@@ -1,5 +1,5 @@
 const { pool, tx } = require('../db');
-const { encryptText, sha256Hex } = require('../crypto');
+const { decryptText, encryptText, sha256Hex } = require('../crypto');
 
 async function listActiveProducts() {
   const { rows } = await pool.query(
@@ -145,6 +145,83 @@ async function adminInventoryStats(productId) {
   return rows[0] || { available: 0, reserved: 0, sold: 0 };
 }
 
+async function adminListCardKeys({ productId, status }) {
+  const { rows } = await pool.query(
+    `
+    SELECT id, product_id, code_encrypted, status, sold_at, created_at
+    FROM card_keys
+    WHERE product_id = $1 AND status = $2
+    ORDER BY id DESC
+    `,
+    [productId, status]
+  );
+
+  return rows.map((row) => ({
+    ...row,
+    code_plain: decryptText(row.code_encrypted),
+  }));
+}
+
+async function adminGetCardKey(cardKeyId) {
+  const { rows } = await pool.query(
+    `
+    SELECT id, product_id, code_encrypted, status
+    FROM card_keys
+    WHERE id = $1
+    `,
+    [cardKeyId]
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    ...row,
+    code_plain: decryptText(row.code_encrypted),
+  };
+}
+
+async function adminUpdateCardKey(cardKeyId, code) {
+  const code_sha256 = sha256Hex(code);
+  const code_encrypted = encryptText(code);
+
+  const { rows } = await pool.query(
+    `
+    UPDATE card_keys
+    SET code_encrypted = $1,
+        code_sha256 = $2
+    WHERE id = $3 AND status = 'available'
+    RETURNING id, product_id
+    `,
+    [code_encrypted, code_sha256, cardKeyId]
+  );
+
+  if (!rows[0]) {
+    const err = new Error('卡密不存在或已售出');
+    err.code = 'NOT_EDITABLE';
+    throw err;
+  }
+
+  return rows[0];
+}
+
+async function adminDeleteCardKey(cardKeyId) {
+  const { rows } = await pool.query(
+    `
+    DELETE FROM card_keys
+    WHERE id = $1 AND status = 'available'
+    RETURNING id, product_id
+    `,
+    [cardKeyId]
+  );
+
+  if (!rows[0]) {
+    const err = new Error('卡密不存在或已售出');
+    err.code = 'NOT_EDITABLE';
+    throw err;
+  }
+
+  return rows[0];
+}
+
 module.exports = {
   listActiveProducts,
   getProductPublic,
@@ -155,4 +232,8 @@ module.exports = {
   adminDeleteProduct,
   adminImportCardKeys,
   adminInventoryStats,
+  adminListCardKeys,
+  adminGetCardKey,
+  adminUpdateCardKey,
+  adminDeleteCardKey,
 };
