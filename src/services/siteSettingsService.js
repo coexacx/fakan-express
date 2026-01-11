@@ -28,6 +28,8 @@ async function ensureRow() {
       middle_bg_image_url
     )
     VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9)
+    INSERT INTO site_settings (id, site_title, footer_left, footer_right, announcement)
+    VALUES (1, $1, $2, $3, $4)
     ON CONFLICT (id) DO NOTHING
     `,
     [
@@ -50,6 +52,7 @@ async function getSiteSettings() {
     `
     SELECT site_title, footer_left, footer_right, announcement,
       top_bg_color, middle_bg_color, card_bg_color, footer_bg_color, middle_bg_image_url
+    SELECT site_title, footer_left, footer_right, announcement
     FROM site_settings
     WHERE id = 1
     `
@@ -69,6 +72,7 @@ async function updateSiteSettings({
   footerBgColor,
   middleBgImageUrl,
 }) {
+async function updateSiteSettings({ siteTitle, footerLeft, footerRight, announcement }) {
   const payload = {
     siteTitle: siteTitle || defaultSettings.site_title,
     footerLeft: footerLeft || defaultSettings.footer_left,
@@ -97,6 +101,8 @@ async function updateSiteSettings({
       updated_at
     )
     VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+    INSERT INTO site_settings (id, site_title, footer_left, footer_right, announcement, updated_at)
+    VALUES (1, $1, $2, $3, $4, NOW())
     ON CONFLICT (id) DO UPDATE SET
       site_title = EXCLUDED.site_title,
       footer_left = EXCLUDED.footer_left,
@@ -120,6 +126,9 @@ async function updateSiteSettings({
       payload.footerBgColor,
       payload.middleBgImageUrl,
     ]
+      updated_at = NOW()
+    `,
+    [payload.siteTitle, payload.footerLeft, payload.footerRight, payload.announcement]
   );
 
   return getSiteSettings();
