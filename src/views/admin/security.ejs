@@ -34,6 +34,35 @@
       </form>
     </div>
   </div>
+<div class="admin-page-header">
+  <div>
+    <h1 class="admin-title">安全设置</h1>
+    <div class="admin-subtitle">修改当前管理员账号与密码</div>
+  </div>
+</div>
+
+<div class="card">
+  <form class="admin-form" method="post" action="/admin/security">
+    <div class="field">
+      <label class="label">当前密码</label>
+      <input class="input" type="password" name="current_password" required>
+    </div>
+    <div class="field">
+      <label class="label">新账号</label>
+      <input class="input" name="username" value="<%= admin ? admin.username : '' %>" required>
+    </div>
+    <div class="field">
+      <label class="label">新密码</label>
+      <input class="input" type="password" name="new_password" required>
+    </div>
+    <div class="field">
+      <label class="label">确认新密码</label>
+      <input class="input" type="password" name="confirm_password" required>
+    </div>
+    <div class="btnrow">
+      <button class="btn primary" type="submit">保存修改</button>
+    </div>
+  </form>
 </div>
 
 <%- include('../partials/footer') %>
