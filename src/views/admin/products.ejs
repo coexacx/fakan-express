@@ -50,6 +50,7 @@
             <td class="text-right admin-actions">
               <a class="btn small" href="/admin/products/<%= p.id %>/inventory">库存</a>
               <a class="btn small" href="/admin/products/<%= p.id %>/edit">编辑</a>
+              <form method="post" action="/admin/products/<%= p.id %>/delete" class="inline-form">
               <form method="post" action="/admin/products/<%= p.id %>/delete" class="inline-form" onsubmit="return confirm('确定删除该商品？（若存在库存或订单引用会删除失败）')">
                 <button class="btn small" type="submit">删除</button>
               </form>

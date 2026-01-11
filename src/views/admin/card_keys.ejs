@@ -53,6 +53,9 @@
           <div class="card-key-meta">
             <div class="card-key-text"><%= k.code_plain %></div>
             <div class="muted">ID: <%= k.id %></div>
+          </div>
+          <div class="card-key-actions">
+            <% if (k.status !== 'sold') { %>
             <% if (k.status === 'sold') { %>
               <div class="muted">已售出时间：<%= k.sold_at ? new Date(k.sold_at).toLocaleString() : '-' %></div>
             <% } %>
@@ -64,6 +67,11 @@
                 <input type="hidden" name="product_id" value="<%= selectedProductId %>">
                 <button class="btn small" type="submit">删除</button>
               </form>
+            <% } else { %>
+              <span class="pill">已售出</span>
+              <span class="muted">售出时间：<%= k.sold_at ? new Date(k.sold_at).toLocaleString() : '-' %></span>
+            <% } %>
+          </div>
             </div>
           <% } else { %>
             <div class="muted">已售出</div>
