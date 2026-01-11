@@ -4,28 +4,30 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><%= title ? title + ' - ' : '' %>发卡站</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/static/styles.css" rel="stylesheet">
+  <% if (admin) { %>
+    <link href="/static/admin.css" rel="stylesheet">
+  <% } else { %>
+    <link href="/static/public.css" rel="stylesheet">
+  <% } %>
 </head>
-<body class="bg-light <%= admin ? 'admin-body' : '' %>">
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark <%= admin ? 'admin-navbar' : '' %>">
-  <div class="container">
-    <a class="navbar-brand" href="/">发卡站</a>
-
-    <div class="ms-auto d-flex gap-2">
+<body>
+<header class="topbar <%= admin ? 'admin' : '' %>">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="/">发卡站</a>
+    <div class="topbar-right">
       <% if (admin) { %>
-        <a class="btn btn-sm btn-outline-light" href="/admin">后台</a>
-        <form method="post" action="/admin/logout" class="d-inline">
-          <button class="btn btn-sm btn-outline-warning" type="submit">退出</button>
+        <a class="btn small" href="/admin">后台</a>
+        <form method="post" action="/admin/logout" class="inline-form">
+          <button class="btn small" type="submit">退出</button>
         </form>
       <% } else { %>
-        <a class="btn btn-sm btn-outline-light" href="/admin/login">商家登录</a>
+        <a class="btn" href="/admin/login">商家登录</a>
       <% } %>
     </div>
   </div>
-</nav>
+</header>
 
-<div class="container py-4 <%= admin ? 'admin-container' : '' %>">
+<main class="wrap">
   <% if (flash) { %>
     <div class="alert alert-<%= flash.type %>"><%= flash.message %></div>
   <% } %>

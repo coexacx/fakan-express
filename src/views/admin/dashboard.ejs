@@ -2,50 +2,42 @@
 
 <div class="admin-page-header">
   <div>
-    <h1 class="h5 admin-title">后台管理</h1>
+    <h1 class="admin-title">后台管理</h1>
     <div class="admin-subtitle">概览与快捷入口</div>
   </div>
 </div>
-<h1 class="h5 mb-3 admin-title">后台管理</h1>
 
-<div class="row g-3">
-  <div class="col-12 col-md-4">
-    <div class="card admin-card">
-      <div class="card-body">
-        <div class="admin-label">商品数量</div>
-        <div class="text-muted small">商品数量</div>
-        <div class="admin-stat"><%= stats.products %></div>
-        <a href="/admin/products" class="btn btn-sm btn-outline-primary mt-2">管理商品</a>
-      </div>
+<div class="grid">
+  <div class="card">
+    <div class="card-title">商品数量</div>
+    <div class="muted">已上架商品数量</div>
+    <div class="price"><%= stats.products %></div>
+    <div class="btnrow">
+      <a href="/admin/products" class="btn">管理商品</a>
     </div>
   </div>
-  <div class="col-12 col-md-4">
-    <div class="card admin-card">
-      <div class="card-body">
-        <div class="admin-label">可用卡密库存</div>
-        <div class="text-muted small">可用卡密库存</div>
-        <div class="admin-stat"><%= stats.availableKeys %></div>
-        <a href="/admin/products" class="btn btn-sm btn-outline-primary mt-2">导入库存</a>
-      </div>
+  <div class="card">
+    <div class="card-title">可用卡密库存</div>
+    <div class="muted">当前可售库存</div>
+    <div class="price"><%= stats.availableKeys %></div>
+    <div class="btnrow">
+      <a href="/admin/products" class="btn">导入库存</a>
     </div>
   </div>
-  <div class="col-12 col-md-4">
-    <div class="card admin-card">
-      <div class="card-body">
-        <div class="admin-label">待处理订单</div>
-        <div class="text-muted small">待处理订单</div>
-        <div class="admin-stat"><%= stats.openOrders %></div>
-        <a href="/admin/orders" class="btn btn-sm btn-outline-primary mt-2">查看订单</a>
-      </div>
+  <div class="card">
+    <div class="card-title">待处理订单</div>
+    <div class="muted">需要发货的订单</div>
+    <div class="price"><%= stats.openOrders %></div>
+    <div class="btnrow">
+      <a href="/admin/orders" class="btn">查看订单</a>
     </div>
   </div>
 </div>
 
-<hr class="my-4">
-<div class="d-flex gap-2 admin-actions">
-  <a class="btn btn-primary" href="/admin/products">商品管理</a>
-  <a class="btn btn-primary" href="/admin/orders">订单管理</a>
-  <a class="btn btn-outline-secondary" href="/">回到前台</a>
+<div class="btnrow admin-section">
+  <a class="btn primary" href="/admin/products">商品管理</a>
+  <a class="btn primary" href="/admin/orders">订单管理</a>
+  <a class="btn" href="/">回到前台</a>
 </div>
 
 <%- include('../partials/footer') %>
