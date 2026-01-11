@@ -2,19 +2,22 @@
 
 <% const isEdit = !!product; %>
 
-<div class="admin-page-header">
-  <div>
-    <h1 class="admin-title"><%= isEdit ? '编辑商品' : '新增商品' %></h1>
-    <div class="admin-subtitle">维护商品基本信息</div>
-  </div>
-</div>
-
-<div class="card">
-  <form class="admin-form" method="post" action="<%= isEdit ? ('/admin/products/' + product.id + '/edit') : '/admin/products/new' %>">
-    <div class="field">
-      <label class="label">商品名称</label>
-      <input class="input" name="name" required maxlength="200" value="<%= isEdit ? product.name : '' %>">
+<div class="admin-shell">
+  <%- include('../partials/admin_sidebar') %>
+  <div class="admin-content">
+    <div class="admin-page-header">
+      <div>
+        <h1 class="admin-title"><%= isEdit ? '编辑商品' : '新增商品' %></h1>
+        <div class="admin-subtitle">维护商品基本信息</div>
+      </div>
     </div>
+
+    <div class="card">
+      <form class="admin-form" method="post" enctype="multipart/form-data" action="<%= isEdit ? ('/admin/products/' + product.id + '/edit') : '/admin/products/new' %>">
+        <div class="field">
+          <label class="label">商品名称</label>
+          <input class="input" name="name" required maxlength="200" value="<%= isEdit ? product.name : '' %>">
+        </div>
 
     <div class="field">
       <label class="label">商品描述</label>
@@ -22,20 +25,30 @@
     </div>
 
     <div class="field">
+      <label class="label">商品图片</label>
+      <input class="input" type="file" name="image" accept="image/*">
+      <% if (isEdit && product.image_url) { %>
+        <div class="help">当前图片：<%= product.image_url %></div>
+      <% } %>
+    </div>
+
+    <div class="field">
       <label class="label">价格（元）</label>
       <input class="input" name="price_yuan" type="number" step="0.01" min="0" required value="<%= isEdit ? (product.price_cents/100).toFixed(2) : '0.00' %>">
     </div>
 
-    <label class="check">
-      <input type="checkbox" name="is_active" <%= (isEdit ? product.is_active : true) ? 'checked' : '' %>>
-      上架
-    </label>
+        <label class="check">
+          <input type="checkbox" name="is_active" <%= (isEdit ? product.is_active : true) ? 'checked' : '' %>>
+          上架
+        </label>
 
-    <div class="btnrow">
-      <button class="btn primary" type="submit">保存</button>
-      <a class="btn" href="/admin/products">返回</a>
+        <div class="btnrow">
+          <button class="btn primary" type="submit">保存</button>
+          <a class="btn" href="/admin/products">返回</a>
+        </div>
+      </form>
     </div>
-  </form>
+  </div>
 </div>
 
 <%- include('../partials/footer') %>
