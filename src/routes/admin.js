@@ -144,10 +144,16 @@ router.post('/products/:id/edit', requireAdmin, async (req, res) => {
 router.post('/products/:id/delete', requireAdmin, async (req, res) => {
   try {
     const productId = Number.parseInt(req.params.id, 10);
-    await adminDeleteProduct(productId);
-    req.session.flash = { type: 'success', message: '商品已删除' };
+    const result = await adminDeleteProduct(productId);
+    req.session.flash = { type: 'success', message: result.message };
   } catch (e) {
-    req.session.flash = { type: 'danger', message: e.message || '删除失败（可能有库存/订单引用）' };
+    let message = e.message || '删除失败';
+    if (e.code === '23503') {
+      message = '删除失败：商品仍被订单或库存引用，请先清理关联数据';
+    } else if (e.code === 'NOT_FOUND') {
+      message = '商品不存在或已被删除';
+    }
+    req.session.flash = { type: 'danger', message };
   }
   return res.redirect('/admin/products');
 });
