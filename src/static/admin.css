@@ -19,20 +19,9 @@ body{
   gap:20px;
   align-items:flex-start;
 }
-.admin-sidebar-wrap{
+.admin-sidebar{
   width:200px;
   flex-shrink:0;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-.admin-nav-toggle{
-  display:none;
-}
-.admin-nav-toggle-btn{
-  display:none;
-}
-.admin-sidebar{
   background:#fff;
   border:1px solid var(--border);
   border-radius:14px;
@@ -161,19 +150,7 @@ body{
     flex-direction:column;
   }
 
-  .admin-sidebar-wrap{
-    width:100%;
-  }
-
-  .admin-nav-toggle-btn{
-    display:inline-flex;
-  }
-
   .admin-sidebar{
-    display:none;
-  }
-
-  .admin-nav-toggle:checked ~ .admin-sidebar{
-    display:block;
+    width:100%;
   }
 }
