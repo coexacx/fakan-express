@@ -54,6 +54,8 @@
                 <button class="btn small" type="submit"><%= p.is_active ? '下架' : '上架' %></button>
               </form>
               <form method="post" action="/admin/products/<%= p.id %>/delete" class="inline-form">
+              <form method="post" action="/admin/products/<%= p.id %>/delete" class="inline-form">
+              <form method="post" action="/admin/products/<%= p.id %>/delete" class="inline-form" onsubmit="return confirm('确定删除该商品？（若存在库存或订单引用会删除失败）')">
                 <button class="btn small" type="submit">删除</button>
               </form>
             </td>

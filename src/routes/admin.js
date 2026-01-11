@@ -258,6 +258,7 @@ router.post('/products/new', requireAdmin, upload.single('image'), async (req, r
     const name = String(req.body.name || '').trim();
     const description = String(req.body.description || '').trim();
     const image_url = req.file ? `/static/uploads/${req.file.filename}` : null;
+    const image_url = String(req.body.image_url || '').trim();
     const priceYuan = Number(req.body.price_yuan || 0);
     const is_active = req.body.is_active === 'on';
 
@@ -291,6 +292,7 @@ router.post('/products/:id/edit', requireAdmin, upload.single('image'), async (r
     const existing = await adminGetProduct(productId);
     if (!existing) return res.status(404).send('Not found');
     const image_url = req.file ? `/static/uploads/${req.file.filename}` : existing.image_url;
+    const image_url = String(req.body.image_url || '').trim();
     const priceYuan = Number(req.body.price_yuan || 0);
     const is_active = req.body.is_active === 'on';
 
