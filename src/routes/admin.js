@@ -384,8 +384,9 @@ router.post('/products/:id/inventory/import', requireAdmin, async (req, res) => 
 // ---- Orders ----
 router.get('/orders', requireAdmin, async (req, res) => {
   const status = req.query.status ? String(req.query.status) : '';
-  const orders = await listOrdersAdmin({ status: status || null });
-  res.render('admin/orders', { title: '订单管理', orders, formatMoney, status });
+  const q = String(req.query.q || '').trim();
+  const orders = await listOrdersAdmin({ status: status || null, query: q || null });
+  res.render('admin/orders', { title: '订单管理', orders, formatMoney, status, q });
 });
 
 router.get('/orders/:orderNo', requireAdmin, async (req, res) => {

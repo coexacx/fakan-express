@@ -209,13 +209,19 @@ async function lookupOrdersPublic({ orderNo, customerContact }) {
 }
 
 
-async function listOrdersAdmin({ status }) {
+async function listOrdersAdmin({ status, query }) {
   const params = [];
-  let where = '';
+  const conditions = [];
   if (status) {
     params.push(status);
-    where = `WHERE o.status = $${params.length}`;
+    conditions.push(`o.status = $${params.length}`);
   }
+  if (query) {
+    params.push(`%${query}%`);
+    const placeholder = `$${params.length}`;
+    conditions.push(`(o.order_no ILIKE ${placeholder} OR o.customer_contact ILIKE ${placeholder})`);
+  }
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
   const { rows } = await pool.query(
     `

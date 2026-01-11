@@ -24,6 +24,10 @@
           <option value="canceled" <%= status==='canceled' ? 'selected' : '' %>>canceled</option>
         </select>
       </div>
+      <div class="field">
+        <label class="label">订单号/联系方式</label>
+        <input class="input" type="text" name="q" placeholder="订单号/联系方式" value="<%= q || '' %>">
+      </div>
       <div class="btnrow">
         <button class="btn primary" type="submit">筛选</button>
       </div>
