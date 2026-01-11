@@ -9,8 +9,8 @@ body{
   border-bottom-color:rgba(148,163,184,.18);
 }
 .topbar.admin .brand,
-.topbar.admin .topbar-right a,
-.topbar.admin .topbar-right button{
+.topbar.admin .topbar-right a:not(.btn),
+.topbar.admin .topbar-right button:not(.btn){
   color:#fff;
 }
 .topbar.admin .btn,
