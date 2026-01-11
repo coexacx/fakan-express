@@ -20,6 +20,7 @@ const {
 const {
   findAdminByUsername,
   verifyAdminPassword,
+  updateAdminCredentials,
 } = require('../services/adminService');
 
 const router = express.Router();
@@ -59,6 +60,51 @@ router.post('/logout', requireAdmin, (req, res) => {
   req.session.admin = null;
   req.session.flash = { type: 'success', message: '已退出登录' };
   return res.redirect('/admin/login');
+});
+
+// ---- Security ----
+router.get('/security', requireAdmin, (req, res) => {
+  res.render('admin/security', { title: '安全设置' });
+});
+
+router.post('/security', requireAdmin, async (req, res) => {
+  const currentPassword = String(req.body.current_password || '');
+  const username = String(req.body.username || '').trim();
+  const newPassword = String(req.body.new_password || '');
+  const confirmPassword = String(req.body.confirm_password || '');
+
+  if (!currentPassword || !username || !newPassword) {
+    req.session.flash = { type: 'danger', message: '请完整填写账号与密码' };
+    return res.redirect('/admin/security');
+  }
+
+  if (newPassword !== confirmPassword) {
+    req.session.flash = { type: 'danger', message: '两次输入的新密码不一致' };
+    return res.redirect('/admin/security');
+  }
+
+  const admin = await findAdminByUsername(req.session.admin.username);
+  if (!admin) {
+    req.session.flash = { type: 'danger', message: '管理员信息不存在' };
+    return res.redirect('/admin/security');
+  }
+
+  const ok = await verifyAdminPassword(admin, currentPassword);
+  if (!ok) {
+    req.session.flash = { type: 'danger', message: '当前密码不正确' };
+    return res.redirect('/admin/security');
+  }
+
+  try {
+    const updated = await updateAdminCredentials(admin.id, { username, password: newPassword });
+    req.session.admin.username = updated.username;
+    req.session.flash = { type: 'success', message: '账号与密码已更新' };
+    return res.redirect('/admin/security');
+  } catch (e) {
+    const message = e.code === '23505' ? '该账号已存在' : (e.message || '更新失败');
+    req.session.flash = { type: 'danger', message };
+    return res.redirect('/admin/security');
+  }
 });
 
 // ---- Dashboard ----
