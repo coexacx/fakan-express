@@ -2,8 +2,8 @@
 
 <footer class="footer">
   <div class="wrap footer-inner">
-    <div>© <%= new Date().getFullYear() %> 发卡站</div>
-    <div class="muted">订单链接包含访问凭证，请妥善保存，勿外泄。</div>
+    <div><%= siteSettings && siteSettings.footer_left ? siteSettings.footer_left : `© ${new Date().getFullYear()} 发卡站` %></div>
+    <div class="muted"><%= siteSettings && siteSettings.footer_right ? siteSettings.footer_right : '订单链接包含访问凭证，请妥善保存，勿外泄。' %></div>
   </div>
 </footer>
 

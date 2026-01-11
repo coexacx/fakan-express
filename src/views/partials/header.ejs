@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title><%= title ? title + ' - ' : '' %>发卡站</title>
+  <title><%= title ? title + ' - ' : '' %><%= siteSettings && siteSettings.site_title ? siteSettings.site_title : '发卡站' %></title>
   <% if (admin) { %>
     <link href="/static/admin.css" rel="stylesheet">
   <% } else { %>
@@ -13,7 +13,7 @@
 <body>
 <header class="topbar <%= admin ? 'admin' : '' %>">
   <div class="wrap topbar-inner">
-    <a class="brand" href="/">发卡站</a>
+    <a class="brand" href="/"><%= siteSettings && siteSettings.site_title ? siteSettings.site_title : '发卡站' %></a>
     <div class="topbar-right">
       <% if (admin) { %>
         <a class="btn small" href="/admin">返回</a>

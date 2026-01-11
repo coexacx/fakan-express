@@ -1,0 +1,46 @@
+<%- include('../partials/header', { title, admin, flash }) %>
+
+<div class="admin-shell">
+  <%- include('../partials/admin_sidebar') %>
+  <div class="admin-content">
+    <div class="admin-page-header">
+      <div>
+        <h1 class="admin-title">站点设置</h1>
+        <div class="admin-subtitle">配置站点标题、公告与页脚信息</div>
+      </div>
+      <a class="btn small" href="/admin">返回后台</a>
+    </div>
+
+    <form class="card admin-section" method="post" action="/admin/site-settings">
+      <div class="field">
+        <label class="label">站点标题</label>
+        <input class="input" name="site_title" value="<%= settings.site_title %>" placeholder="例如：发卡站">
+        <div class="muted">显示在浏览器标题与页面左上角品牌。</div>
+      </div>
+
+      <div class="field">
+        <label class="label">左下角信息</label>
+        <input class="input" name="footer_left" value="<%= settings.footer_left %>" placeholder="例如：© 2026 发卡站">
+        <div class="muted">显示在前台页脚左下角。</div>
+      </div>
+
+      <div class="field">
+        <label class="label">右下角提示</label>
+        <input class="input" name="footer_right" value="<%= settings.footer_right %>" placeholder="例如：订单链接包含访问凭证，请妥善保存，勿外泄。">
+        <div class="muted">显示在前台页脚右下角的提示信息。</div>
+      </div>
+
+      <div class="field">
+        <label class="label">公告内容</label>
+        <textarea class="input" name="announcement" rows="3" placeholder="填写公告内容（可留空）"><%= settings.announcement %></textarea>
+        <div class="muted">展示在商品列表页的公告板区域。</div>
+      </div>
+
+      <div class="btnrow">
+        <button class="btn primary" type="submit">保存设置</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
