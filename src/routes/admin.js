@@ -1,4 +1,7 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 const { pool } = require('../db');
 const { requireAdmin } = require('../middleware/adminAuth');
 const {
@@ -29,6 +32,20 @@ const {
 } = require('../services/adminService');
 
 const router = express.Router();
+const uploadDir = path.join(__dirname, '..', 'static', 'uploads');
+fs.mkdirSync(uploadDir, { recursive: true });
+const upload = multer({
+  storage: multer.diskStorage({
+    destination(req, file, cb) {
+      cb(null, uploadDir);
+    },
+    filename(req, file, cb) {
+      const ext = path.extname(file.originalname || '') || '.png';
+      const name = `product-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      cb(null, name);
+    },
+  }),
+});
 
 // ---- Auth ----
 router.get('/login', (req, res) => {
@@ -236,10 +253,11 @@ router.get('/products/new', requireAdmin, async (req, res) => {
   res.render('admin/product_form', { title: '新增商品', product: null });
 });
 
-router.post('/products/new', requireAdmin, async (req, res) => {
+router.post('/products/new', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const name = String(req.body.name || '').trim();
     const description = String(req.body.description || '').trim();
+    const image_url = req.file ? `/static/uploads/${req.file.filename}` : null;
     const image_url = String(req.body.image_url || '').trim();
     const priceYuan = Number(req.body.price_yuan || 0);
     const is_active = req.body.is_active === 'on';
@@ -266,11 +284,14 @@ router.get('/products/:id/edit', requireAdmin, async (req, res) => {
   res.render('admin/product_form', { title: '编辑商品', product });
 });
 
-router.post('/products/:id/edit', requireAdmin, async (req, res) => {
+router.post('/products/:id/edit', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const productId = Number.parseInt(req.params.id, 10);
     const name = String(req.body.name || '').trim();
     const description = String(req.body.description || '').trim();
+    const existing = await adminGetProduct(productId);
+    if (!existing) return res.status(404).send('Not found');
+    const image_url = req.file ? `/static/uploads/${req.file.filename}` : existing.image_url;
     const image_url = String(req.body.image_url || '').trim();
     const priceYuan = Number(req.body.price_yuan || 0);
     const is_active = req.body.is_active === 'on';
@@ -297,9 +318,7 @@ router.post('/products/:id/delete', requireAdmin, async (req, res) => {
     req.session.flash = { type: 'success', message: result.message };
   } catch (e) {
     let message = e.message || '删除失败';
-    if (e.code === '23503') {
-      message = '删除失败：商品仍被订单或库存引用，请先清理关联数据';
-    } else if (e.code === 'NOT_FOUND') {
+    if (e.code === 'NOT_FOUND') {
       message = '商品不存在或已被删除';
     }
     req.session.flash = { type: 'danger', message };

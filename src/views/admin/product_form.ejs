@@ -13,6 +13,7 @@
     </div>
 
     <div class="card">
+      <form class="admin-form" method="post" enctype="multipart/form-data" action="<%= isEdit ? ('/admin/products/' + product.id + '/edit') : '/admin/products/new' %>">
       <form class="admin-form" method="post" action="<%= isEdit ? ('/admin/products/' + product.id + '/edit') : '/admin/products/new' %>">
         <div class="field">
           <label class="label">商品名称</label>
@@ -25,6 +26,11 @@
     </div>
 
     <div class="field">
+      <label class="label">商品图片</label>
+      <input class="input" type="file" name="image" accept="image/*">
+      <% if (isEdit && product.image_url) { %>
+        <div class="help">当前图片：<%= product.image_url %></div>
+      <% } %>
       <label class="label">商品图片 URL</label>
       <input class="input" name="image_url" value="<%= isEdit ? (product.image_url || '') : '' %>" placeholder="https://">
     </div>

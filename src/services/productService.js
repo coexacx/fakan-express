@@ -178,6 +178,13 @@ async function adminListCardKeys({ productId, status }) {
 
   return rows.map((row) => ({
     ...row,
+    code_plain: (() => {
+      try {
+        return decryptText(row.code_encrypted);
+      } catch (e) {
+        return '[无法解密]';
+      }
+    })(),
     code_plain: decryptText(row.code_encrypted),
   }));
 }
@@ -195,6 +202,13 @@ async function adminGetCardKey(cardKeyId) {
   if (!row) return null;
   return {
     ...row,
+    code_plain: (() => {
+      try {
+        return decryptText(row.code_encrypted);
+      } catch (e) {
+        return '[无法解密]';
+      }
+    })(),
     code_plain: decryptText(row.code_encrypted),
   };
 }

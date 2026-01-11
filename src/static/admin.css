@@ -104,6 +104,8 @@ body{
   padding:10px 16px;
   border:1px solid var(--border);
   border-radius:999px;
+  background:#fff;
+  flex-wrap:nowrap;
   padding:10px 12px;
   border:1px solid var(--border);
   border-radius:12px;
@@ -124,6 +126,18 @@ body{
   justify-content:flex-end;
   flex-shrink:0;
   text-align:right;
+  white-space:nowrap;
+}
+.card-key-text{
+  font-weight:700;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.card-key-sold{
+  color:var(--muted);
+  background:#e2e8f0;
+  border-color:#cbd5e1;
   flex-shrink:0;
 }
 .card-key-text{
@@ -268,5 +282,9 @@ body{
   .card-key-actions{
     width:100%;
     justify-content:flex-end;
+    white-space:normal;
+  }
+  .card-key-text{
+    white-space:normal;
   }
 }
