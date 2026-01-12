@@ -14,11 +14,15 @@
     <div class="alert alert-warning" style="margin-top:14px;">
       支付通道暂未配置，请联系商家处理或稍后再试。
     </div>
+  <% } else if (!paymentMethods || paymentMethods.length === 0) { %>
+    <div class="alert alert-warning" style="margin-top:14px;">
+      暂时无法获取可用支付方式，请稍后再试或联系商家。
+    </div>
   <% } else { %>
     <div class="help" style="margin-top:14px;">请选择支付方式，系统将跳转至对应支付平台完成付款。</div>
     <div class="btnrow" style="margin-top:12px;">
       <% paymentMethods.forEach(method => { %>
-        <form method="post" action="/pay/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>/confirm" class="inline-form">
+        <form method="post" action="/pay/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>" class="inline-form">
           <input type="hidden" name="type" value="<%= method.type %>">
           <button class="btn primary" type="submit"><%= method.label %>支付</button>
         </form>

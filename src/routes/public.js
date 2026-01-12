@@ -1,11 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
-const crypto = require('crypto');
-
 const { listActiveProducts, getProductPublic } = require('../services/productService');
 const { getSiteSettings } = require('../services/siteSettingsService');
 const { getPaymentSettings } = require('../services/paymentSettingsService');
+const {
+  buildYipaySign,
+  normalizePaymentType,
+  getGatewayEndpoints,
+  fetchYipayPaymentMethods,
+} = require('../services/yipayService');
 
 const {
   createOrderAndReserve,
@@ -18,20 +22,6 @@ const {
 
 const { config } = require('../config');
 
-const PAYMENT_METHODS = [
-  { type: 'alipay', label: '支付宝' },
-  { type: 'wxpay', label: '微信支付' },
-];
-
-function buildMd5(text) {
-  return crypto.createHash('md5').update(String(text), 'utf8').digest('hex');
-}
-
-function buildYipaySign(params, key, fields) {
-  const payload = fields.map((field) => String(params[field] ?? '')).join('');
-  return buildMd5(`${payload}${key}`);
-}
-
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -43,11 +33,6 @@ function escapeHtml(value) {
 
 function getBaseUrl(req) {
   return `${req.protocol}://${req.get('host')}`;
-}
-
-function normalizePaymentType(value) {
-  const type = String(value || '').trim();
-  return PAYMENT_METHODS.some((method) => method.type === type) ? type : null;
 }
 
 function isPaymentReady(settings) {
@@ -186,19 +171,20 @@ router.get('/pay/:orderNo/:token', async (req, res) => {
     getSiteSettings(),
     getPaymentSettings(),
   ]);
+  const { methods: paymentMethods } = await fetchYipayPaymentMethods(paymentSettings);
   res.render('public/pay', {
     title: '支付',
     data,
     formatMoney,
     flash: consumeFlash(req),
     siteSettings,
-    paymentMethods: PAYMENT_METHODS,
+    paymentMethods,
     paymentReady: isPaymentReady(paymentSettings),
   });
 });
 
 // Create real payment order (YiPay)
-router.post('/pay/:orderNo/:token/confirm', async (req, res) => {
+router.post('/pay/:orderNo/:token', async (req, res) => {
   const orderNo = req.params.orderNo;
   const token = req.params.token;
   const paymentType = normalizePaymentType(req.body.type);
@@ -222,7 +208,14 @@ router.post('/pay/:orderNo/:token/confirm', async (req, res) => {
     return res.redirect(`/pay/${encodeURIComponent(orderNo)}/${encodeURIComponent(token)}`);
   }
 
+  const { methods: availableMethods } = await fetchYipayPaymentMethods(paymentSettings);
+  if (availableMethods.length > 0 && !availableMethods.some((method) => method.type === paymentType)) {
+    req.session.flash = { type: 'warning', message: '当前支付方式不可用，请重新选择' };
+    return res.redirect(`/pay/${encodeURIComponent(orderNo)}/${encodeURIComponent(token)}`);
+  }
+
   const baseUrl = getBaseUrl(req);
+  const { submitUrl } = getGatewayEndpoints(paymentSettings.gateway_url);
   const payload = {
     pid: paymentSettings.merchant_id,
     type: paymentType,
@@ -259,7 +252,7 @@ router.post('/pay/:orderNo/:token/confirm', async (req, res) => {
       </head>
       <body>
         <p>正在跳转到支付平台，请稍候...</p>
-        <form id="pay-form" method="post" action="${escapeHtml(paymentSettings.gateway_url)}">
+        <form id="pay-form" method="post" action="${escapeHtml(submitUrl || paymentSettings.gateway_url)}">
           ${inputs}
         </form>
         <script>
