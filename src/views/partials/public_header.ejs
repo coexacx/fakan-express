@@ -11,6 +11,7 @@
     || /^rgba\(0,0,0,0(?:\.0+)?\)$/.test(middleBgNormalized)
     || middleBgNormalized === '#00000000'
     || middleBgNormalized === '#0000';
+  const middleTransparent = middleBgNormalized === 'transparent' || middleBgNormalized === 'rgba(0,0,0,0)';
 %>
 <!doctype html>
 <html lang="zh-CN">
