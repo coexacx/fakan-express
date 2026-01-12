@@ -219,7 +219,7 @@ main{flex:1 0 auto}
   .topbar-right{justify-content:flex-start}
   .hero{padding:10px 0 4px}
   .grid{grid-template-columns:1fr}
-  .btn{width:100%}
+  .btnrow .btn{width:100%}
   .btnrow{flex-direction:column;align-items:stretch}
   .footer-inner{padding:14px}
 }
