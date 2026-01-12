@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
+const crypto = require('crypto');
+
 const { listActiveProducts, getProductPublic } = require('../services/productService');
 const { getSiteSettings } = require('../services/siteSettingsService');
+const { getPaymentSettings } = require('../services/paymentSettingsService');
 
 const {
   createOrderAndReserve,
@@ -10,10 +13,53 @@ const {
   markPaidAndDeliver,
   formatMoney,
   lookupOrdersPublic,
+  getOrderAccessToken,
 } = require('../services/orderService');
 
 const { config } = require('../config');
-const { hmacSha256Hex, timingSafeEqual } = require('../crypto');
+
+const PAYMENT_METHODS = [
+  { type: 'alipay', label: '支付宝' },
+  { type: 'wxpay', label: '微信支付' },
+];
+
+function buildMd5(text) {
+  return crypto.createHash('md5').update(String(text), 'utf8').digest('hex');
+}
+
+function buildYipaySign(params, key, fields) {
+  const payload = fields.map((field) => String(params[field] ?? '')).join('');
+  return buildMd5(`${payload}${key}`);
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getBaseUrl(req) {
+  return `${req.protocol}://${req.get('host')}`;
+}
+
+function normalizePaymentType(value) {
+  const type = String(value || '').trim();
+  return PAYMENT_METHODS.some((method) => method.type === type) ? type : null;
+}
+
+function isPaymentReady(settings) {
+  return Boolean(settings.gateway_url && settings.merchant_id && settings.merchant_key);
+}
+
+function verifyYipayCallback(params, settings) {
+  const required = ['pid', 'trade_no', 'out_trade_no', 'type', 'name', 'money', 'trade_status'];
+  if (!required.every((field) => params[field])) return false;
+  const expected = buildYipaySign(params, settings.merchant_key, required);
+  return String(params.sign || '').toLowerCase() === expected;
+}
 
 // 取出一次性 flash（用完即清）
 function consumeFlash(req) {
@@ -136,62 +182,145 @@ router.get('/pay/:orderNo/:token', async (req, res) => {
     return res.redirect(`/order/${encodeURIComponent(orderNo)}/${encodeURIComponent(token)}`);
   }
 
-  const siteSettings = await getSiteSettings();
-  res.render('public/pay', { title: '支付', data, formatMoney, flash: consumeFlash(req), siteSettings });
+  const [siteSettings, paymentSettings] = await Promise.all([
+    getSiteSettings(),
+    getPaymentSettings(),
+  ]);
+  res.render('public/pay', {
+    title: '支付',
+    data,
+    formatMoney,
+    flash: consumeFlash(req),
+    siteSettings,
+    paymentMethods: PAYMENT_METHODS,
+    paymentReady: isPaymentReady(paymentSettings),
+  });
 });
 
-// Mock payment confirm (demo)
+// Create real payment order (YiPay)
 router.post('/pay/:orderNo/:token/confirm', async (req, res) => {
   const orderNo = req.params.orderNo;
   const token = req.params.token;
+  const paymentType = normalizePaymentType(req.body.type);
 
   const data = await getOrderForPublic({ orderNo, accessToken: token });
   if (!data) return res.status(404).send('订单不存在或访问凭证错误');
 
   if (data.order.status !== 'pending') {
-    req.session.flash = { type: 'warning', message: `订单当前状态为 ${data.order.status}，无法进行演示支付` };
+    req.session.flash = { type: 'warning', message: `订单当前状态为 ${data.order.status}，无需支付` };
     return res.redirect(`/order/${encodeURIComponent(orderNo)}/${encodeURIComponent(token)}`);
   }
 
-  try {
-    const out = await markPaidAndDeliver(orderNo, { force: false });
-    req.session.flash = { type: out.status === 'delivered' ? 'success' : 'warning', message: out.message };
-  } catch (e) {
-    req.session.flash = { type: 'danger', message: e.message || '支付处理失败' };
+  if (!paymentType) {
+    req.session.flash = { type: 'warning', message: '请选择支付方式' };
+    return res.redirect(`/pay/${encodeURIComponent(orderNo)}/${encodeURIComponent(token)}`);
   }
 
-  return res.redirect(`/order/${encodeURIComponent(orderNo)}/${encodeURIComponent(token)}`);
+  const paymentSettings = await getPaymentSettings();
+  if (!isPaymentReady(paymentSettings)) {
+    req.session.flash = { type: 'danger', message: '支付通道未配置，请联系商家' };
+    return res.redirect(`/pay/${encodeURIComponent(orderNo)}/${encodeURIComponent(token)}`);
+  }
+
+  const baseUrl = getBaseUrl(req);
+  const payload = {
+    pid: paymentSettings.merchant_id,
+    type: paymentType,
+    out_trade_no: orderNo,
+    notify_url: `${baseUrl}/pay/notify`,
+    return_url: `${baseUrl}/pay/return`,
+    name: `订单 ${orderNo}`,
+    money: formatMoney(data.order.total_cents),
+  };
+  const sign = buildYipaySign(payload, paymentSettings.merchant_key, [
+    'pid',
+    'type',
+    'out_trade_no',
+    'notify_url',
+    'return_url',
+    'name',
+    'money',
+  ]);
+  const formFields = {
+    ...payload,
+    sign,
+    sign_type: 'MD5',
+  };
+  const inputs = Object.entries(formFields)
+    .map(([key, value]) => `<input type="hidden" name="${escapeHtml(key)}" value="${escapeHtml(value)}">`)
+    .join('\n');
+
+  return res.send(`
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+      <head>
+        <meta charset="utf-8">
+        <title>正在跳转到支付...</title>
+      </head>
+      <body>
+        <p>正在跳转到支付平台，请稍候...</p>
+        <form id="pay-form" method="post" action="${escapeHtml(paymentSettings.gateway_url)}">
+          ${inputs}
+        </form>
+        <script>
+          document.getElementById('pay-form').submit();
+        </script>
+      </body>
+    </html>
+  `);
 });
 
-/**
- * Optional real payment webhook (HMAC-SHA256)
- * - Header: x-fakan-signature: <hex>
- * - Body: { "order_no": "...", "status": "success" }
- */
-router.post('/webhook/payment', async (req, res) => {
-  if (!config.paymentWebhookSecret) {
-    return res.status(400).json({ ok: false, error: 'PAYMENT_WEBHOOK_SECRET not set' });
+router.post('/pay/notify', async (req, res) => {
+  const paymentSettings = await getPaymentSettings();
+  if (!isPaymentReady(paymentSettings)) return res.status(400).send('fail');
+
+  const payload = { ...req.query, ...req.body };
+  if (!verifyYipayCallback(payload, paymentSettings)) return res.status(401).send('fail');
+
+  const tradeStatus = String(payload.trade_status || '').toUpperCase();
+  if (tradeStatus !== 'TRADE_SUCCESS' && tradeStatus !== 'SUCCESS') {
+    return res.send('success');
   }
-
-  const signature = req.get('x-fakan-signature') || '';
-  const rawBody = req.rawBody || JSON.stringify(req.body || {});
-  const expected = hmacSha256Hex(config.paymentWebhookSecret, rawBody);
-
-  if (!timingSafeEqual(signature, expected)) {
-    return res.status(401).json({ ok: false, error: 'invalid signature' });
-  }
-
-  const { order_no, status } = req.body || {};
-  if (!order_no) return res.status(400).json({ ok: false, error: 'order_no required' });
-
-  if (status !== 'success') return res.json({ ok: true, ignored: true });
 
   try {
-    const out = await markPaidAndDeliver(order_no, { force: true });
-    return res.json({ ok: true, result: out });
+    await markPaidAndDeliver(payload.out_trade_no, { force: true });
+    return res.send('success');
   } catch (e) {
-    return res.status(500).json({ ok: false, error: e.message || 'failed' });
+    return res.status(500).send('fail');
   }
+});
+
+router.get('/pay/return', async (req, res) => {
+  const paymentSettings = await getPaymentSettings();
+  if (!isPaymentReady(paymentSettings)) {
+    req.session.flash = { type: 'danger', message: '支付通道未配置，请联系商家' };
+    return res.redirect('/query');
+  }
+
+  const payload = { ...req.query };
+  if (!verifyYipayCallback(payload, paymentSettings)) {
+    req.session.flash = { type: 'danger', message: '支付校验失败，请联系商家' };
+    return res.redirect('/query');
+  }
+
+  const tradeStatus = String(payload.trade_status || '').toUpperCase();
+  if (tradeStatus === 'TRADE_SUCCESS' || tradeStatus === 'SUCCESS') {
+    try {
+      await markPaidAndDeliver(payload.out_trade_no, { force: true });
+      req.session.flash = { type: 'success', message: '支付成功，订单已处理' };
+    } catch (e) {
+      req.session.flash = { type: 'warning', message: e.message || '支付成功但处理失败，请联系商家' };
+    }
+  } else {
+    req.session.flash = { type: 'warning', message: '支付未完成或状态异常' };
+  }
+
+  const orderAccess = await getOrderAccessToken(payload.out_trade_no);
+  if (orderAccess) {
+    return res.redirect(`/order/${encodeURIComponent(orderAccess.order_no)}/${encodeURIComponent(orderAccess.access_token)}`);
+  }
+
+  return res.redirect('/query');
 });
 
 module.exports = { publicRouter: router };
