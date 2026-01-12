@@ -4,24 +4,31 @@
 <section class="card">
   <div class="card-top">
     <div class="card-title">支付</div>
-    <span class="pill warn">演示模式</span>
   </div>
 
   <div class="desc" style="margin-top:10px;">
     订单号：<strong><%= o.order_no %></strong> · 金额：<strong>￥<%= formatMoney(o.total_cents) %></strong>
   </div>
 
-  <div class="alert alert-warning" style="margin-top:14px;">
-    当前为<strong>演示支付</strong>：点击“我已完成支付”会直接把订单标记为已支付并自动发货。<br>
-    上线请接入真实支付（支付宝/微信/等）并用回调触发服务器 webhook。
-  </div>
-
-  <form method="post" action="/pay/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>/confirm">
-    <div class="btnrow">
-      <button class="btn success" type="submit">我已完成支付（演示）</button>
-      <a class="btn" href="/order/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>">返回订单</a>
+  <% if (!paymentReady) { %>
+    <div class="alert alert-warning" style="margin-top:14px;">
+      支付通道暂未配置，请联系商家处理或稍后再试。
     </div>
-  </form>
+  <% } else { %>
+    <div class="help" style="margin-top:14px;">请选择支付方式，系统将跳转至对应支付平台完成付款。</div>
+    <div class="btnrow" style="margin-top:12px;">
+      <% paymentMethods.forEach(method => { %>
+        <form method="post" action="/pay/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>/confirm" class="inline-form">
+          <input type="hidden" name="type" value="<%= method.type %>">
+          <button class="btn primary" type="submit"><%= method.label %>支付</button>
+        </form>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <div class="btnrow" style="margin-top:12px;">
+    <a class="btn" href="/order/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>">返回订单</a>
+  </div>
 </section>
 
 <%- include('../partials/public_footer') %>

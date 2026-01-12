@@ -64,7 +64,7 @@
 
 <% if (o.status === 'pending') { %>
   <div class="alert alert-info" style="margin-top:16px;">
-    订单已创建，等待支付。点击按钮进入支付页（当前项目默认演示支付，可后续替换为真实支付）。
+    订单已创建，等待支付。点击按钮进入支付页，选择支付方式完成付款。
   </div>
   <div class="btnrow">
     <a class="btn primary" href="/pay/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>">去支付</a>

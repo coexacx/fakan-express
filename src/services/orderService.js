@@ -157,6 +157,18 @@ async function getOrderForPublic({ orderNo, accessToken }) {
   return { order, items: itemRows, deliveredCodes };
 }
 
+async function getOrderAccessToken(orderNo) {
+  const { rows } = await pool.query(
+    `
+    SELECT order_no, access_token
+    FROM orders
+    WHERE order_no = $1
+    `,
+    [orderNo]
+  );
+  return rows[0] || null;
+}
+
 async function lookupOrdersPublic({ orderNo, customerContact }) {
   orderNo = orderNo ? String(orderNo).trim() : '';
   customerContact = customerContact ? String(customerContact).trim() : '';
@@ -490,4 +502,5 @@ module.exports = {
   releaseExpiredReservations,
   formatMoney,
   lookupOrdersPublic,
+  getOrderAccessToken,
 };
