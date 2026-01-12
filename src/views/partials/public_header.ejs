@@ -5,7 +5,8 @@
   const cardBg = siteSettings && siteSettings.card_bg_color ? siteSettings.card_bg_color : '#ffffff';
   const footerBg = siteSettings && siteSettings.footer_bg_color ? siteSettings.footer_bg_color : '#f6f7fb';
   const middleBgImage = siteSettings && siteSettings.middle_bg_image_url ? siteSettings.middle_bg_image_url : '';
-  const middleTransparent = middleBg && middleBg.toLowerCase() === '#000000';
+  const middleBgNormalized = middleBg ? middleBg.replace(/\s+/g, '').toLowerCase() : '';
+  const middleTransparent = middleBgNormalized === 'transparent' || middleBgNormalized === 'rgba(0,0,0,0)';
 %>
 <!doctype html>
 <html lang="zh-CN">
@@ -13,7 +14,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><%= title ? title + ' - ' : '' %><%= siteTitle %></title>
-  <title><%= title ? title + ' - ' : '' %><%= siteSettings && siteSettings.site_title ? siteSettings.site_title : '发卡站' %></title>
   <link href="/static/public.css" rel="stylesheet">
   <style>
     :root{
@@ -29,7 +29,6 @@
 <header class="topbar">
   <div class="wrap topbar-inner">
     <a class="brand" href="/"><%= siteTitle %></a>
-    <a class="brand" href="/"><%= siteSettings && siteSettings.site_title ? siteSettings.site_title : '发卡站' %></a>
     <div class="topbar-right">
       <!-- 顾客端不显示任何后台/商家登录入口 -->
       <a class="btn" href="/query">订单查询</a>
