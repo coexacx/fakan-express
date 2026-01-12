@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const { listActiveProducts, getProductPublic } = require('../services/productService');
+const { getSiteSettings } = require('../services/siteSettingsService');
 
 const {
   createOrderAndReserve,
@@ -23,7 +24,14 @@ function consumeFlash(req) {
 
 router.get('/', async (req, res) => {
   const products = await listActiveProducts();
-  res.render('public/index', { title: '商品列表', products, formatMoney, flash: consumeFlash(req) });
+  const siteSettings = await getSiteSettings();
+  res.render('public/index', {
+    title: '商品列表',
+    products,
+    formatMoney,
+    flash: consumeFlash(req),
+    siteSettings,
+  });
 });
 
 router.get('/product/:id', async (req, res) => {
@@ -33,17 +41,26 @@ router.get('/product/:id', async (req, res) => {
   const product = await getProductPublic(productId);
   if (!product) return res.status(404).send('商品不存在或已下架');
 
-  res.render('public/product', { title: product.name, product, formatMoney, flash: consumeFlash(req) });
+  const siteSettings = await getSiteSettings();
+  res.render('public/product', {
+    title: product.name,
+    product,
+    formatMoney,
+    flash: consumeFlash(req),
+    siteSettings,
+  });
 });
 
 // 订单查询页
 router.get('/query', async (req, res) => {
+  const siteSettings = await getSiteSettings();
   res.render('public/query', {
     title: '订单查询',
     results: null,
     q: null,
     formatMoney,
     flash: consumeFlash(req),
+    siteSettings,
   });
 });
 
@@ -58,12 +75,14 @@ router.post('/query', async (req, res) => {
 
   try {
     const results = await lookupOrdersPublic({ orderNo, customerContact });
+    const siteSettings = await getSiteSettings();
     res.render('public/query', {
       title: '订单查询',
       results,
       q: { order_no: orderNo, customer_contact: customerContact },
       formatMoney,
       flash: consumeFlash(req),
+      siteSettings,
     });
   } catch (e) {
     req.session.flash = { type: 'danger', message: e.message || '查询失败' };
@@ -93,12 +112,14 @@ router.get('/order/:orderNo/:token', async (req, res) => {
   const data = await getOrderForPublic({ orderNo, accessToken: token });
   if (!data) return res.status(404).send('订单不存在或访问凭证错误');
 
+  const siteSettings = await getSiteSettings();
   res.render('public/order', {
     title: `订单 ${orderNo}`,
     data,
     formatMoney,
     reserveMinutes: config.reserveMinutes,
     flash: consumeFlash(req),
+    siteSettings,
   });
 });
 
@@ -115,7 +136,8 @@ router.get('/pay/:orderNo/:token', async (req, res) => {
     return res.redirect(`/order/${encodeURIComponent(orderNo)}/${encodeURIComponent(token)}`);
   }
 
-  res.render('public/pay', { title: '支付', data, formatMoney, flash: consumeFlash(req) });
+  const siteSettings = await getSiteSettings();
+  res.render('public/pay', { title: '支付', data, formatMoney, flash: consumeFlash(req), siteSettings });
 });
 
 // Mock payment confirm (demo)
