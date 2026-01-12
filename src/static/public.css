@@ -53,7 +53,7 @@ main{flex:1 0 auto}
 .hero h1{margin:0;font-size:28px;letter-spacing:.2px}
 .hero p{margin:8px 0 0;color:var(--muted)}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:16px}
 
 .card{
   background:var(--panel);
