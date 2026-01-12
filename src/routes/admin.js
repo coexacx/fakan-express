@@ -213,7 +213,6 @@ router.get('/site-settings', requireAdmin, async (req, res) => {
 });
 
 router.post('/site-settings', requireAdmin, upload.single('middle_bg_image'), async (req, res) => {
-router.post('/site-settings', requireAdmin, async (req, res) => {
   const siteTitle = String(req.body.site_title || '').trim();
   const footerLeft = String(req.body.footer_left || '').trim();
   const footerRight = String(req.body.footer_right || '').trim();
@@ -237,9 +236,6 @@ router.post('/site-settings', requireAdmin, async (req, res) => {
       footerBgColor,
       middleBgImageUrl,
     });
-
-  try {
-    await updateSiteSettings({ siteTitle, footerLeft, footerRight, announcement });
     req.session.flash = { type: 'success', message: '站点设置已更新' };
   } catch (e) {
     req.session.flash = { type: 'danger', message: e.message || '站点设置更新失败' };
