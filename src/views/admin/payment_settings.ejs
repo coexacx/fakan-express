@@ -1,0 +1,44 @@
+<%- include('../partials/header', { title, admin, flash }) %>
+
+<div class="admin-shell">
+  <%- include('../partials/admin_sidebar') %>
+  <div class="admin-content">
+    <div class="admin-page-header">
+      <div>
+        <h1 class="admin-title">支付配置</h1>
+        <div class="admin-subtitle">配置支付网关与商户信息，支持易支付 submit.php / mapi.php</div>
+      </div>
+      <a class="btn small" href="/admin">返回后台</a>
+    </div>
+
+    <form class="card admin-section" method="post" action="/admin/payment-settings">
+      <div class="field">
+        <label class="label">支付网关</label>
+        <input class="input" name="gateway_url" value="<%= settings.gateway_url %>" placeholder="https://example.com/submit.php">
+        <div class="muted">支持易支付的 submit.php 与 mapi.php 接口地址。</div>
+      </div>
+
+      <div class="field">
+        <label class="label">商户ID</label>
+        <input class="input" name="merchant_id" value="<%= settings.merchant_id %>" placeholder="填写商户ID">
+      </div>
+
+      <div class="field">
+        <label class="label">商户密钥</label>
+        <input class="input" name="merchant_key" value="<%= settings.merchant_key %>" placeholder="填写商户密钥">
+      </div>
+
+      <div class="field">
+        <label class="label">手续费（百分比）</label>
+        <input class="input" name="fee_percent" value="<%= settings.fee_percent %>" placeholder="0-100" type="number" min="0" max="100" step="0.01">
+        <div class="muted">范围 0-100，例如 1.5 表示 1.5%。</div>
+      </div>
+
+      <div class="btnrow">
+        <button class="btn primary" type="submit">保存配置</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

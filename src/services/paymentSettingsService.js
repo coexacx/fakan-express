@@ -1,0 +1,109 @@
+const { pool } = require('../db');
+
+const defaultSettings = {
+  gateway_url: '',
+  merchant_id: '',
+  merchant_key: '',
+  fee_percent: 0,
+};
+
+async function ensureRow() {
+  await pool.query(
+    `
+    INSERT INTO payment_settings (
+      id,
+      gateway_url,
+      merchant_id,
+      merchant_key,
+      fee_percent
+    )
+    VALUES (1, $1, $2, $3, $4)
+    ON CONFLICT (id) DO NOTHING
+    `,
+    [
+      defaultSettings.gateway_url,
+      defaultSettings.merchant_id,
+      defaultSettings.merchant_key,
+      defaultSettings.fee_percent,
+    ]
+  );
+}
+
+function validateGatewayUrl(gatewayUrl) {
+  try {
+    const parsed = new URL(gatewayUrl);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      throw new Error('支付网关地址不正确');
+    }
+  } catch (e) {
+    if (e.message === '支付网关地址不正确') {
+      throw e;
+    }
+    throw new Error('支付网关地址不正确');
+  }
+}
+
+async function getPaymentSettings() {
+  await ensureRow();
+  const { rows } = await pool.query(
+    `
+    SELECT gateway_url, merchant_id, merchant_key, fee_percent
+    FROM payment_settings
+    WHERE id = 1
+    `
+  );
+  const row = rows[0];
+  return row ? { ...defaultSettings, ...row } : { ...defaultSettings };
+}
+
+async function updatePaymentSettings({
+  gatewayUrl,
+  merchantId,
+  merchantKey,
+  feePercent,
+}) {
+  const trimmedGatewayUrl = String(gatewayUrl || '').trim();
+  const trimmedMerchantId = String(merchantId || '').trim();
+  const trimmedMerchantKey = String(merchantKey || '').trim();
+  const feeValue = Number(feePercent);
+
+  if (!trimmedGatewayUrl) {
+    throw new Error('支付网关不能为空');
+  }
+  if (!trimmedMerchantId) {
+    throw new Error('商户ID不能为空');
+  }
+  if (!trimmedMerchantKey) {
+    throw new Error('商户密钥不能为空');
+  }
+  if (!Number.isFinite(feeValue) || feeValue < 0 || feeValue > 100) {
+    throw new Error('手续费需在 0-100 之间');
+  }
+
+  validateGatewayUrl(trimmedGatewayUrl);
+
+  await pool.query(
+    `
+    INSERT INTO payment_settings (
+      id,
+      gateway_url,
+      merchant_id,
+      merchant_key,
+      fee_percent,
+      updated_at
+    )
+    VALUES (1, $1, $2, $3, $4, NOW())
+    ON CONFLICT (id) DO UPDATE SET
+      gateway_url = EXCLUDED.gateway_url,
+      merchant_id = EXCLUDED.merchant_id,
+      merchant_key = EXCLUDED.merchant_key,
+      fee_percent = EXCLUDED.fee_percent,
+      updated_at = NOW()
+    `,
+    [trimmedGatewayUrl, trimmedMerchantId, trimmedMerchantKey, feeValue]
+  );
+
+  return getPaymentSettings();
+}
+
+module.exports = { getPaymentSettings, updatePaymentSettings, defaultSettings };
