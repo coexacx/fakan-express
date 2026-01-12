@@ -23,7 +23,7 @@ const config = {
 
   // If you put this app behind HTTPS reverse proxy (Nginx/Caddy), set COOKIE_SECURE=true
   cookieSecure: env('COOKIE_SECURE', 'false') === 'true',
-  trustProxy: envInt('TRUST_PROXY', 0),
+  trustProxy: envInt('TRUST_PROXY', 1),
 
   bootstrapAdminUsername: env('BOOTSTRAP_ADMIN_USERNAME', ''),
   bootstrapAdminPassword: env('BOOTSTRAP_ADMIN_PASSWORD', ''),
