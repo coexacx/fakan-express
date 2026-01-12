@@ -13,7 +13,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><%= title ? title + ' - ' : '' %><%= siteTitle %></title>
-  <title><%= title ? title + ' - ' : '' %><%= siteSettings && siteSettings.site_title ? siteSettings.site_title : '发卡站' %></title>
   <link href="/static/public.css" rel="stylesheet">
   <style>
     :root{
@@ -29,7 +28,6 @@
 <header class="topbar">
   <div class="wrap topbar-inner">
     <a class="brand" href="/"><%= siteTitle %></a>
-    <a class="brand" href="/"><%= siteSettings && siteSettings.site_title ? siteSettings.site_title : '发卡站' %></a>
     <div class="topbar-right">
       <!-- 顾客端不显示任何后台/商家登录入口 -->
       <a class="btn" href="/query">订单查询</a>
