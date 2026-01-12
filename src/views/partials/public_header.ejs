@@ -5,6 +5,22 @@
   const cardBg = siteSettings && siteSettings.card_bg_color ? siteSettings.card_bg_color : '#ffffff';
   const footerBg = siteSettings && siteSettings.footer_bg_color ? siteSettings.footer_bg_color : '#f6f7fb';
   const middleBgImage = siteSettings && siteSettings.middle_bg_image_url ? siteSettings.middle_bg_image_url : '';
+  const middleBgNormalized = String(middleBg || '').replace(/\s+/g, '').toLowerCase();
+  const isTransparentRgba = () => {
+    if (!middleBgNormalized.startsWith('rgba(') || !middleBgNormalized.endsWith(')')) {
+      return false;
+    }
+    const parts = middleBgNormalized.slice(5, -1).split(',');
+    if (parts.length !== 4) {
+      return false;
+    }
+    const alpha = Number(parts[3]);
+    return Number.isFinite(alpha) && alpha === 0;
+  };
+  const middleTransparent = middleBgNormalized === 'transparent'
+    || middleBgNormalized === '#00000000'
+    || middleBgNormalized === '#0000'
+    || isTransparentRgba();
   const middleBgNormalized = middleBg ? middleBg.replace(/\s+/g, '').toLowerCase() : '';
   const middleTransparent = middleBgNormalized === 'transparent'
     || middleBgNormalized === 'rgba(0,0,0,0)'
@@ -30,7 +46,7 @@
     }
   </style>
 </head>
-<body>
+<body class="public-page">
 <header class="topbar">
   <div class="wrap topbar-inner">
     <a class="brand" href="/"><%= siteTitle %></a>
