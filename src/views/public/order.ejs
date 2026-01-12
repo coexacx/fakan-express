@@ -44,20 +44,22 @@
 
 <section class="card" style="margin-top:16px;">
   <div class="card-title">商品明细</div>
-  <table class="table">
-    <thead>
-      <tr><th>商品</th><th>数量</th><th>单价</th></tr>
-    </thead>
-    <tbody>
-      <% items.forEach(it => { %>
-        <tr>
-          <td><%= it.product_name %></td>
-          <td><%= it.qty %></td>
-          <td>￥<%= formatMoney(it.unit_price_cents) %></td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>商品</th><th>数量</th><th>单价</th></tr>
+      </thead>
+      <tbody>
+        <% items.forEach(it => { %>
+          <tr>
+            <td><%= it.product_name %></td>
+            <td><%= it.qty %></td>
+            <td>￥<%= formatMoney(it.unit_price_cents) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <% if (o.status === 'pending') { %>

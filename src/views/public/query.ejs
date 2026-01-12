@@ -64,18 +64,20 @@
         下单时间：<%= new Date(o.created_at).toLocaleString() %> · 金额：<strong>￥<%= formatMoney(o.total_cents) %></strong>
       </div>
 
-      <table class="table">
-        <thead><tr><th>商品</th><th>数量</th><th>单价</th></tr></thead>
-        <tbody>
-          <% items.forEach(it => { %>
-            <tr>
-              <td><%= it.product_name %></td>
-              <td><%= it.qty %></td>
-              <td>￥<%= formatMoney(it.unit_price_cents) %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>商品</th><th>数量</th><th>单价</th></tr></thead>
+          <tbody>
+            <% items.forEach(it => { %>
+              <tr>
+                <td><%= it.product_name %></td>
+                <td><%= it.qty %></td>
+                <td>￥<%= formatMoney(it.unit_price_cents) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
 
       <div class="btnrow">
         <a class="btn" href="/order/<%= encodeURIComponent(o.order_no) %>/<%= encodeURIComponent(o.access_token) %>">打开订单详情</a>
