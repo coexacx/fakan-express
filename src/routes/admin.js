@@ -31,6 +31,7 @@ const {
   updateAdminCredentials,
 } = require('../services/adminService');
 const { getSiteSettings, updateSiteSettings } = require('../services/siteSettingsService');
+const { getPaymentSettings, updatePaymentSettings } = require('../services/paymentSettingsService');
 
 const router = express.Router();
 const uploadDir = path.join(__dirname, '..', 'static', 'uploads');
@@ -241,6 +242,27 @@ router.post('/site-settings', requireAdmin, upload.single('middle_bg_image'), as
     req.session.flash = { type: 'danger', message: e.message || '站点设置更新失败' };
   }
   return res.redirect('/admin/site-settings');
+});
+
+// ---- Payment Settings ----
+router.get('/payment-settings', requireAdmin, async (req, res) => {
+  const settings = await getPaymentSettings();
+  res.render('admin/payment_settings', { title: '支付配置', settings });
+});
+
+router.post('/payment-settings', requireAdmin, async (req, res) => {
+  const gatewayUrl = String(req.body.gateway_url || '').trim();
+  const merchantId = String(req.body.merchant_id || '').trim();
+  const merchantKey = String(req.body.merchant_key || '').trim();
+  const feePercent = String(req.body.fee_percent || '').trim();
+
+  try {
+    await updatePaymentSettings({ gatewayUrl, merchantId, merchantKey, feePercent });
+    req.session.flash = { type: 'success', message: '支付配置已更新' };
+  } catch (e) {
+    req.session.flash = { type: 'danger', message: e.message || '支付配置更新失败' };
+  }
+  return res.redirect('/admin/payment-settings');
 });
 
 // ---- Dashboard ----
