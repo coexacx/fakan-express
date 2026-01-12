@@ -180,6 +180,10 @@ main{flex:1 0 auto}
 }
 .table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
 .table th{color:#334155;font-weight:700;font-size:13px}
+.table-wrap{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
 
 .codebox{
   width:100%;
@@ -219,6 +223,8 @@ main{flex:1 0 auto}
   .topbar-right{justify-content:flex-start}
   .hero{padding:10px 0 4px}
   .grid{grid-template-columns:1fr}
+  .table th,.table td{padding:8px;font-size:12px}
+  .table th{font-size:12px}
   .btnrow .btn{width:100%}
   .btnrow{flex-direction:column;align-items:stretch}
   .footer-inner{padding:14px}
