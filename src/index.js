@@ -67,7 +67,11 @@ async function main() {
   app.set('views', path.join(__dirname, 'views'));
   app.set('view engine', 'ejs');
 
-  app.use(helmet());
+  app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 
   // For HTML forms
   app.use(express.urlencoded({ extended: false }));

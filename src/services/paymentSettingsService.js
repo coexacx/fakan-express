@@ -4,6 +4,9 @@ const defaultSettings = {
   gateway_url: '',
   merchant_id: '',
   merchant_key: '',
+  // 可选：用于生成 notify_url / return_url 的回调域名（例如 https://example.com）
+  // 留空时会根据请求的 Host 自动推断（反代未正确传 Host 时可能变成 127.0.0.1）
+  callback_base_url: '',
   fee_percent: 0,
 };
 
@@ -15,11 +18,17 @@ async function ensureTable() {
       gateway_url TEXT NOT NULL DEFAULT '',
       merchant_id TEXT NOT NULL DEFAULT '',
       merchant_key TEXT NOT NULL DEFAULT '',
+      callback_base_url TEXT NOT NULL DEFAULT '',
       fee_percent NUMERIC(5,2) NOT NULL DEFAULT 0 CHECK (fee_percent >= 0 AND fee_percent <= 100),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
     `
+  );
+
+  // 兼容旧版本：补列
+  await pool.query(
+    `ALTER TABLE payment_settings ADD COLUMN IF NOT EXISTS callback_base_url TEXT NOT NULL DEFAULT ''`
   );
 }
 
@@ -32,15 +41,17 @@ async function ensureRow() {
       gateway_url,
       merchant_id,
       merchant_key,
+      callback_base_url,
       fee_percent
     )
-    VALUES (1, $1, $2, $3, $4)
+    VALUES (1, $1, $2, $3, $4, $5)
     ON CONFLICT (id) DO NOTHING
     `,
     [
       defaultSettings.gateway_url,
       defaultSettings.merchant_id,
       defaultSettings.merchant_key,
+      defaultSettings.callback_base_url,
       defaultSettings.fee_percent,
     ]
   );
@@ -60,11 +71,22 @@ function validateGatewayUrl(gatewayUrl) {
   }
 }
 
+function normalizeBaseUrl(baseUrl) {
+  const v = String(baseUrl || '').trim();
+  if (!v) return '';
+  const parsed = new URL(v);
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error('回调域名必须是 http(s):// 开头');
+  }
+  // 去掉结尾的 /，避免拼接出双斜杠
+  return parsed.toString().replace(/\/$/, '');
+}
+
 async function getPaymentSettings() {
   await ensureRow();
   const { rows } = await pool.query(
     `
-    SELECT gateway_url, merchant_id, merchant_key, fee_percent
+    SELECT gateway_url, merchant_id, merchant_key, callback_base_url, fee_percent::float8 AS fee_percent
     FROM payment_settings
     WHERE id = 1
     `
@@ -77,11 +99,13 @@ async function updatePaymentSettings({
   gatewayUrl,
   merchantId,
   merchantKey,
+  callbackBaseUrl,
   feePercent,
 }) {
   const trimmedGatewayUrl = String(gatewayUrl || '').trim();
   const trimmedMerchantId = String(merchantId || '').trim();
   const trimmedMerchantKey = String(merchantKey || '').trim();
+  const normalizedCallbackBaseUrl = normalizeBaseUrl(callbackBaseUrl);
   const feeValue = Number(feePercent);
 
   if (!trimmedGatewayUrl) {
@@ -106,18 +130,20 @@ async function updatePaymentSettings({
       gateway_url,
       merchant_id,
       merchant_key,
+      callback_base_url,
       fee_percent,
       updated_at
     )
-    VALUES (1, $1, $2, $3, $4, NOW())
+    VALUES (1, $1, $2, $3, $4, $5, NOW())
     ON CONFLICT (id) DO UPDATE SET
       gateway_url = EXCLUDED.gateway_url,
       merchant_id = EXCLUDED.merchant_id,
       merchant_key = EXCLUDED.merchant_key,
+      callback_base_url = EXCLUDED.callback_base_url,
       fee_percent = EXCLUDED.fee_percent,
       updated_at = NOW()
     `,
-    [trimmedGatewayUrl, trimmedMerchantId, trimmedMerchantKey, feeValue]
+    [trimmedGatewayUrl, trimmedMerchantId, trimmedMerchantKey, normalizedCallbackBaseUrl, feeValue]
   );
 
   return getPaymentSettings();

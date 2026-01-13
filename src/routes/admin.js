@@ -254,10 +254,11 @@ router.post('/payment-settings', requireAdmin, async (req, res) => {
   const gatewayUrl = String(req.body.gateway_url || '').trim();
   const merchantId = String(req.body.merchant_id || '').trim();
   const merchantKey = String(req.body.merchant_key || '').trim();
+  const callbackBaseUrl = String(req.body.callback_base_url || '').trim();
   const feePercent = String(req.body.fee_percent || '').trim();
 
   try {
-    await updatePaymentSettings({ gatewayUrl, merchantId, merchantKey, feePercent });
+    await updatePaymentSettings({ gatewayUrl, merchantId, merchantKey, callbackBaseUrl, feePercent });
     req.session.flash = { type: 'success', message: '支付配置已更新' };
   } catch (e) {
     req.session.flash = { type: 'danger', message: e.message || '支付配置更新失败' };

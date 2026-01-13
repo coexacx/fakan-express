@@ -19,6 +19,14 @@
       </div>
 
       <div class="field">
+        <label class="label">回调域名（可选）</label>
+        <input class="input" name="callback_base_url" value="<%= settings.callback_base_url %>" placeholder="https://techforgo.eu">
+        <div class="muted">
+          用于生成 notify_url / return_url。留空则按请求 Host 自动推断；若你使用 Nginx 反代但未正确转发 Host，可能会变成 127.0.0.1。
+        </div>
+      </div>
+
+      <div class="field">
         <label class="label">商户ID</label>
         <input class="input" name="merchant_id" value="<%= settings.merchant_id %>" placeholder="填写商户ID">
       </div>

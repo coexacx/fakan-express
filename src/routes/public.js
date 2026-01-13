@@ -18,6 +18,8 @@ const {
   formatMoney,
   lookupOrdersPublic,
   getOrderAccessToken,
+  setOrderPayableCents,
+  getOrderPayableCents,
 } = require('../services/orderService');
 
 const { config } = require('../config');
@@ -31,8 +33,27 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function getBaseUrl(req) {
+function getBaseUrl(req, paymentSettings) {
+  const configured = paymentSettings ? String(paymentSettings.callback_base_url || '').trim() : '';
+  if (configured) return configured.replace(/\/$/, '');
   return `${req.protocol}://${req.get('host')}`;
+}
+
+function calcPayableCents(totalCents, feePercent) {
+  const total = Number(totalCents || 0);
+  const fee = Number(feePercent || 0);
+  if (!Number.isFinite(total) || total < 0) return 0;
+  if (!Number.isFinite(fee) || fee <= 0) return total;
+  const feeCents = Math.ceil((total * fee) / 100);
+  return total + feeCents;
+}
+
+function parseMoneyToCents(money) {
+  const s = String(money || '').trim();
+  if (!/^\d+(\.\d{1,2})?$/.test(s)) return null;
+  const [i, d = ''] = s.split('.');
+  const cents = Number(i) * 100 + Number(d.padEnd(2, '0').slice(0, 2));
+  return Number.isFinite(cents) ? cents : null;
 }
 
 function isPaymentReady(settings) {
@@ -40,9 +61,13 @@ function isPaymentReady(settings) {
 }
 
 function verifyYipayCallback(params, settings) {
+  // 易支付回调签名：除 sign/sign_type/空值以外的参数按 ASCII 排序后拼接 + KEY 做 MD5
+  // 仍然先做必要字段判断，避免脏请求
   const required = ['pid', 'trade_no', 'out_trade_no', 'type', 'name', 'money', 'trade_status'];
-  if (!required.every((field) => params[field])) return false;
-  const expected = buildYipaySign(params, settings.merchant_key, required);
+  if (!required.every((field) => params[field] !== undefined && params[field] !== null && String(params[field]) !== '')) {
+    return false;
+  }
+  const expected = buildYipaySign(params, settings.merchant_key);
   return String(params.sign || '').toLowerCase() === expected;
 }
 
@@ -171,6 +196,8 @@ router.get('/pay/:orderNo/:token', async (req, res) => {
     getSiteSettings(),
     getPaymentSettings(),
   ]);
+  const feePercent = Number(paymentSettings.fee_percent || 0);
+  const payableCents = calcPayableCents(data.order.total_cents, feePercent);
   const { methods: paymentMethods } = await fetchYipayPaymentMethods(paymentSettings);
   res.render('public/pay', {
     title: '支付',
@@ -180,6 +207,8 @@ router.get('/pay/:orderNo/:token', async (req, res) => {
     siteSettings,
     paymentMethods,
     paymentReady: isPaymentReady(paymentSettings),
+    feePercent,
+    payableCents,
   });
 });
 
@@ -214,7 +243,18 @@ router.post('/pay/:orderNo/:token', async (req, res) => {
     return res.redirect(`/pay/${encodeURIComponent(orderNo)}/${encodeURIComponent(token)}`);
   }
 
-  const baseUrl = getBaseUrl(req);
+  const feePercent = Number(paymentSettings.fee_percent || 0);
+  const payableCents = calcPayableCents(data.order.total_cents, feePercent);
+
+  // 将本次支付应付金额写入订单（用于后续回调金额校验，避免后台修改手续费后导致历史订单不一致）
+  try {
+    await setOrderPayableCents(orderNo, payableCents);
+  } catch (e) {
+    // 不影响下单，但会降低金额校验的准确性
+    console.log(`[pay] setOrderPayableCents failed for ${orderNo}: ${e.message}`);
+  }
+
+  const baseUrl = getBaseUrl(req, paymentSettings);
   const { submitUrl } = getGatewayEndpoints(paymentSettings.gateway_url);
   const payload = {
     pid: paymentSettings.merchant_id,
@@ -223,17 +263,10 @@ router.post('/pay/:orderNo/:token', async (req, res) => {
     notify_url: `${baseUrl}/pay/notify`,
     return_url: `${baseUrl}/pay/return`,
     name: `订单 ${orderNo}`,
-    money: formatMoney(data.order.total_cents),
+    money: formatMoney(payableCents),
   };
-  const sign = buildYipaySign(payload, paymentSettings.merchant_key, [
-    'pid',
-    'type',
-    'out_trade_no',
-    'notify_url',
-    'return_url',
-    'name',
-    'money',
-  ]);
+  // submit.php 下单签名同样遵循“参数字典序拼接 + KEY”规则
+  const sign = buildYipaySign(payload, paymentSettings.merchant_key);
   const formFields = {
     ...payload,
     sign,
@@ -254,6 +287,10 @@ router.post('/pay/:orderNo/:token', async (req, res) => {
         <p>正在跳转到支付平台，请稍候...</p>
         <form id="pay-form" method="post" action="${escapeHtml(submitUrl || paymentSettings.gateway_url)}">
           ${inputs}
+          <noscript>
+  <p>您的浏览器禁用了 JavaScript，请点击下面按钮继续跳转：</p>
+  <button type="submit">继续前往支付</button>
+</noscript>
         </form>
         <script>
           document.getElementById('pay-form').submit();
@@ -272,6 +309,23 @@ router.post('/pay/notify', async (req, res) => {
 
   const tradeStatus = String(payload.trade_status || '').toUpperCase();
   if (tradeStatus !== 'TRADE_SUCCESS' && tradeStatus !== 'SUCCESS') {
+    return res.send('success');
+  }
+
+  // -------- 金额校验（含手续费后的应付金额） --------
+  const paidCents = parseMoneyToCents(payload.money);
+  if (paidCents === null) {
+    console.log(`[notify] invalid money: ${payload.money} (order ${payload.out_trade_no})`);
+    return res.status(400).send('fail');
+  }
+  const expected = await getOrderPayableCents(payload.out_trade_no);
+  if (!expected) {
+    console.log(`[notify] order not found: ${payload.out_trade_no}`);
+    return res.send('success');
+  }
+  if (paidCents !== Number(expected.payableCents)) {
+    console.log(`[notify] money mismatch order=${payload.out_trade_no} expected=${expected.payableCents} got=${paidCents}`);
+    // 返回 success 以避免平台反复重试，但不触发发货
     return res.send('success');
   }
 
@@ -298,6 +352,22 @@ router.get('/pay/return', async (req, res) => {
 
   const tradeStatus = String(payload.trade_status || '').toUpperCase();
   if (tradeStatus === 'TRADE_SUCCESS' || tradeStatus === 'SUCCESS') {
+    // -------- 金额校验（含手续费后的应付金额） --------
+    const paidCents = parseMoneyToCents(payload.money);
+    if (paidCents === null) {
+      req.session.flash = { type: 'danger', message: '金额格式异常，已拦截支付回调，请联系商家' };
+      return res.redirect('/query');
+    }
+    const expected = await getOrderPayableCents(payload.out_trade_no);
+    if (!expected) {
+      req.session.flash = { type: 'danger', message: '订单不存在，无法处理回调' };
+      return res.redirect('/query');
+    }
+    if (paidCents !== Number(expected.payableCents)) {
+      req.session.flash = { type: 'danger', message: '金额校验失败（应付金额不一致），请联系商家' };
+      return res.redirect('/query');
+    }
+
     try {
       await markPaidAndDeliver(payload.out_trade_no, { force: true });
       req.session.flash = { type: 'success', message: '支付成功，订单已处理' };

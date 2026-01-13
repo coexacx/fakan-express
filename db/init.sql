@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS payment_settings (
   gateway_url TEXT NOT NULL DEFAULT '',
   merchant_id TEXT NOT NULL DEFAULT '',
   merchant_key TEXT NOT NULL DEFAULT '',
+  callback_base_url TEXT NOT NULL DEFAULT '',
   fee_percent NUMERIC(5,2) NOT NULL DEFAULT 0 CHECK (fee_percent >= 0 AND fee_percent <= 100),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -56,11 +57,6 @@ VALUES (
   '#f6f7fb',
   NULL
 )
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-INSERT INTO site_settings (id, site_title, footer_left, footer_right, announcement)
-VALUES (1, '发卡站', '© 2026 发卡站', '订单链接包含访问凭证，请妥善保存，勿外泄。', '')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO payment_settings (
@@ -68,9 +64,10 @@ INSERT INTO payment_settings (
   gateway_url,
   merchant_id,
   merchant_key,
+  callback_base_url,
   fee_percent
 )
-VALUES (1, '', '', '', 0)
+VALUES (1, '', '', '', '', 0)
 ON CONFLICT (id) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS products (
@@ -92,6 +89,7 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_note TEXT,
   status TEXT NOT NULL, -- pending/paid/delivered/expired/canceled/delivery_failed
   total_cents BIGINT NOT NULL CHECK (total_cents >= 0),
+  payable_cents BIGINT NOT NULL DEFAULT 0 CHECK (payable_cents >= 0),
   reserved_expires_at TIMESTAMPTZ,
   paid_at TIMESTAMPTZ,
   delivered_at TIMESTAMPTZ,

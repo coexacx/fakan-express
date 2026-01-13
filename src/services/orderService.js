@@ -61,12 +61,12 @@ for (let i = 0; i < 5; i += 1) {
     const orderRes = await client.query(
       `
       INSERT INTO orders
-        (order_no, access_token, customer_contact, customer_note, status, total_cents, reserved_expires_at, created_at, updated_at)
+        (order_no, access_token, customer_contact, customer_note, status, total_cents, payable_cents, reserved_expires_at, created_at, updated_at)
       VALUES
-        ($1, $2, $3, $4, 'pending', $5, $6, NOW(), NOW())
-      RETURNING id, order_no, access_token, status, total_cents, reserved_expires_at, created_at
+        ($1, $2, $3, $4, 'pending', $5, $6, $7, NOW(), NOW())
+      RETURNING id, order_no, access_token, status, total_cents, payable_cents, reserved_expires_at, created_at
       `,
-      [orderNo, accessToken, customerContact, customerNote, totalCents, reservedExpiresAt]
+      [orderNo, accessToken, customerContact, customerNote, totalCents, totalCents, reservedExpiresAt]
     );
     const order = orderRes.rows[0];
 
@@ -487,6 +487,29 @@ async function releaseExpiredReservations() {
   );
 }
 
+// 支付应付金额（含手续费）写入订单，用于回调金额校验
+async function setOrderPayableCents(orderNo, payableCents) {
+  if (!orderNo) throw new Error('orderNo required');
+  const v = Number(payableCents);
+  if (!Number.isFinite(v) || v < 0) throw new Error('invalid payableCents');
+  await pool.query(
+    `UPDATE orders SET payable_cents=$2, updated_at=NOW() WHERE order_no=$1`,
+    [orderNo, v]
+  );
+}
+
+async function getOrderPayableCents(orderNo) {
+  if (!orderNo) return null;
+  const { rows } = await pool.query(
+    `SELECT total_cents, payable_cents FROM orders WHERE order_no=$1 LIMIT 1`,
+    [orderNo]
+  );
+  if (!rows[0]) return null;
+  const totalCents = Number(rows[0].total_cents || 0);
+  const payableCents = Number(rows[0].payable_cents ?? rows[0].total_cents ?? 0);
+  return { totalCents, payableCents };
+}
+
 function formatMoney(cents) {
   const v = Number(cents || 0) / 100;
   return v.toFixed(2);
@@ -500,6 +523,8 @@ module.exports = {
   markPaidAndDeliver,
   cancelOrder,
   releaseExpiredReservations,
+  setOrderPayableCents,
+  getOrderPayableCents,
   formatMoney,
   lookupOrdersPublic,
   getOrderAccessToken,

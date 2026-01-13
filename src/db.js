@@ -68,6 +68,20 @@ async function ensureSchema() {
     ON CONFLICT (id) DO NOTHING
     `
   );
+
+  // ---- Orders extensions (backward compatible) ----
+  try {
+    const { rows } = await pool.query("SELECT to_regclass('public.orders') AS t");
+    if (rows && rows[0] && rows[0].t) {
+      await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payable_cents BIGINT`);
+      await pool.query(`UPDATE orders SET payable_cents = total_cents WHERE payable_cents IS NULL`);
+      await pool.query(`ALTER TABLE orders ALTER COLUMN payable_cents SET DEFAULT 0`);
+      await pool.query(`ALTER TABLE orders ALTER COLUMN payable_cents SET NOT NULL`);
+    }
+  } catch (e) {
+    // 不阻塞服务启动；但若这里报错，支付金额校验可能不可用
+    console.log(`[db] ensure orders extensions failed: ${e.message}`);
+  }
 }
 
 async function withClient(fn) {

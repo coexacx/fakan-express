@@ -23,9 +23,27 @@ function buildMd5(text) {
   return crypto.createHash('md5').update(String(text), 'utf8').digest('hex');
 }
 
-function buildYipaySign(params, key, fields) {
-  const payload = fields.map((field) => String(params[field] ?? '')).join('');
-  return buildMd5(`${payload}${key}`);
+/**
+ * 易支付/彩虹易支付 V1（submit.php / mapi.php）常见 MD5 签名规则：
+ * 1) 取所有非空参数（排除 sign / sign_type）
+ * 2) 按参数名 ASCII 升序排序
+ * 3) 拼接为 key=value&key2=value2...（参数值不做 urlEncode）
+ * 4) md5(拼接字符串 + 商户密钥KEY)，结果通常为 32 位小写
+ */
+function buildYipaySign(params, key) {
+  const secret = String(key || '').trim();
+  const entries = Object.entries(params || {})
+    .filter(([field, value]) => {
+      if (field === 'sign' || field === 'sign_type') return false;
+      if (value === undefined || value === null) return false;
+      const text = String(value);
+      return text !== '';
+    })
+    .map(([field, value]) => [String(field), String(value)])
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  const query = entries.map(([field, value]) => `${field}=${value}`).join('&');
+  return buildMd5(`${query}${secret}`).toLowerCase();
 }
 
 function normalizePaymentType(value) {
